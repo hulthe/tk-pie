@@ -1,0 +1,13 @@
+[package]
+name = "itsybitsy_rp2040_keyboard"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+adafruit-itsy-bitsy-rp2040 = "0.6.0"
+cortex-m = "0.7.2"
+cortex-m-rt = "0.7"
+embedded-hal ="0.2.5"
+panic-halt= "0.2.0"
