@@ -8,90 +8,76 @@
 
 #![no_std]
 #![no_main]
+#![feature(type_alias_impl_trait)]
 
-// The macro for our start-up function
-use adafruit_itsy_bitsy_rp2040::{
-    entry,
-    hal::{clocks::ClocksManager, usb},
-};
+extern crate cortex_m_rt;
+extern crate panic_halt;
 
-// Ensure we halt the program on panic (if we don't mention this crate it won't
-// be linked)
-use panic_halt as _;
+mod board;
+mod keyboard;
+mod usb;
 
-// Some traits we need
-use embedded_hal::digital::v2::OutputPin;
+use board::Board;
+use embassy_executor::Spawner;
+use embassy_rp::gpio::{Level, Output};
+use embassy_time::{Duration, Timer};
 
-use adafruit_itsy_bitsy_rp2040::{
-    hal::{
-        clocks::{init_clocks_and_plls, Clock},
-        pac,
-        sio::Sio,
-        watchdog::Watchdog,
-    },
-    Pins, XOSC_CRYSTAL_FREQ,
-};
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    let p = embassy_rp::init(Default::default());
 
-use cortex_m::delay::Delay;
+    let board = Board {
+        a0: p.PIN_26,
+        a1: p.PIN_27,
+        a2: p.PIN_28,
+        a3: p.PIN_29,
+        d24: p.PIN_24,
+        d25: p.PIN_25,
+        sck: p.PIN_18,
+        mosi: p.PIN_19,
+        miso: p.PIN_20,
+        d2: p.PIN_12,
+        d3: p.PIN_5,
+        d4: p.PIN_4,
+        rx: p.PIN_1,
+        tx: p.PIN_0,
+        sda: p.PIN_2,
+        scl: p.PIN_3,
+        d5: p.PIN_14,
+        d7: p.PIN_6,
+        d9: p.PIN_7,
+        d10: p.PIN_8,
+        d11: p.PIN_9,
+        d12: p.PIN_10,
+        d13: p.PIN_11,
+        neopixel: p.PIN_17,
+        neopixel_power: p.PIN_16,
+    };
 
-/// Entry point to our bare-metal application.
-///
-/// The `#[entry]` macro ensures the Cortex-M start-up code calls this function
-/// as soon as all global variables are initialised.
-///
-/// The function configures the RP2040 peripherals, then toggles a GPIO pin in
-/// an infinite loop. If there is an LED connected to that pin, it will blink.
-#[entry]
-fn main() -> ! {
-    // Grab our singleton objects
-    let mut pac = pac::Peripherals::take().unwrap();
-    let core = pac::CorePeripherals::take().unwrap();
+    let mut led = Output::new(board.d13, Level::High);
 
-    // Set up the watchdog driver - needed by the clock setup code
-    let mut watchdog = Watchdog::new(pac.WATCHDOG);
+    let mut builder = usb::builder(p.USB);
 
-    // Configure the clocks
-    let clocks = init_clocks_and_plls(
-        XOSC_CRYSTAL_FREQ,
-        pac.XOSC,
-        pac.CLOCKS,
-        pac.PLL_SYS,
-        pac.PLL_USB,
-        &mut pac.RESETS,
-        &mut watchdog,
-    )
-    .ok()
-    .unwrap();
+    usb::logger::setup(&mut builder).await;
 
-    let usb = usb::UsbBus::new(
-        pac.USBCTRL_REGS,
-        pac.USBCTRL_DPRAM,
-        clocks.usb_clock,
-        false,
-        &mut pac.RESETS,
-    );
+    log::error!("log_level: error");
+    log::warn!("log_level: warn");
+    log::info!("log_level: info");
+    log::debug!("log_level: debug");
+    log::trace!("log_level: trace");
 
-    // TODO: how to keyboard
+    usb::keyboard::setup(&mut builder).await;
 
-    let mut delay = Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
+    let usb = builder.build();
 
-    // The single-cycle I/O block controls our GPIO pins
-    let sio = Sio::new(pac.SIO);
+    spawner.must_spawn(usb::run(usb));
 
-    let pins = Pins::new(
-        pac.IO_BANK0,
-        pac.PADS_BANK0,
-        sio.gpio_bank0,
-        &mut pac.RESETS,
-    );
-    let mut led_pin = pins.d13.into_push_pull_output();
+    Timer::after(Duration::from_millis(1000)).await;
+
+    crate::keyboard::test_type("Hello there!\n").await;
 
     loop {
-        led_pin.set_high().unwrap();
-        delay.delay_ms(500);
-        led_pin.set_low().unwrap();
-        delay.delay_ms(500);
+        Timer::after(Duration::from_millis(500)).await;
+        led.toggle();
     }
 }
-
-// End of file

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+cargo run
+
+printf "waiting for serial log"
+
+SERIAL=/dev/ttyACM0
+while [ ! -e $SERIAL ]
+do
+	printf "."
+	sleep 1
+done
+echo
+
+sleep 1
+
+cat $SERIAL

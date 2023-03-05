@@ -3,11 +3,25 @@ name = "itsybitsy_rp2040_keyboard"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-adafruit-itsy-bitsy-rp2040 = "0.6.0"
-cortex-m = "0.7.2"
+#adafruit-itsy-bitsy-rp2040 = "0.6.0"
+cortex-m = "0.7.6"
 cortex-m-rt = "0.7"
 embedded-hal ="0.2.5"
 panic-halt= "0.2.0"
+usb-device = "*"
+usbd-hid = "0.6.1"
+static_cell = "1.0.0"
+embedded-io = { version = "*", features = ["async"] }
+futures = { version = "0.3", default-features = false }
+
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "integrated-timers" ] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly"] }
+embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
+embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
+embassy-usb = { git = "https://github.com/embassy-rs/embassy.git", features = ["usbd-hid"] }
+embassy-usb-logger = { git = "https://github.com/embassy-rs/embassy.git", features = [] }
+embassy-usb-driver = { git = "https://github.com/embassy-rs/embassy.git", features = [] }
+
+embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "pio", "critical-section-impl"] }
+log = "0.4.17"
