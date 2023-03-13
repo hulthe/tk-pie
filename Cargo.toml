@@ -8,7 +8,7 @@ edition = "2021"
 cortex-m = "0.7.6"
 cortex-m-rt = "0.7"
 embedded-hal ="0.2.5"
-panic-halt= "0.2.0"
+#panic-halt= "0.2.0"
 usb-device = "*"
 usbd-hid = "0.6.1"
 static_cell = "1.0.0"
@@ -25,3 +25,10 @@ embassy-usb-driver = { git = "https://github.com/embassy-rs/embassy.git", featur
 
 embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "pio", "critical-section-impl"] }
 log = "0.4.17"
+pio = "0.2.1"
+pio-proc = "0.2.1"
+smart-leds = "0.3.0"
+
+[features]
+default = ["n-key-rollover"]
+n-key-rollover=[]

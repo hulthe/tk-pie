@@ -1,6 +1,8 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 
+use embassy_rp::gpio::{AnyPin, Input, Pin, Pull};
 use embassy_time::{Duration, Timer};
+use log::info;
 
 pub const ROWS: usize = 3;
 pub const COLS: usize = 5;
@@ -62,6 +64,18 @@ pub enum Button {
     Key { keycode: u8 },
 }
 
+#[embassy_executor::task(pool_size = 20)]
+pub async fn monitor_switch(pin: AnyPin) -> ! {
+    let pin_nr = pin.pin();
+    let mut pin = Input::new(pin, Pull::Up);
+    loop {
+        pin.wait_for_low().await;
+        info!("pin {pin_nr} low");
+        pin.wait_for_high().await;
+        info!("pin {pin_nr} high");
+    }
+}
+
 #[allow(dead_code)]
 impl Button {
     pub const fn key(keycode: u8) -> Self {
@@ -120,68 +134,103 @@ impl Button {
     pub const KEY_RALT: Button = Button::key(0xE6);
 }
 
-pub fn letter_to_key(c: char) -> Option<Button> {
-    if !c.is_ascii() {
-        return None;
-    }
+/// Random functions for testing
+#[allow(dead_code)]
+pub mod test {
+    use super::*;
 
-    let c = c.to_ascii_uppercase();
-
-    let key = match c {
-        'A' => Button::KEY_A,
-        'B' => Button::KEY_B,
-        'C' => Button::KEY_C,
-        'D' => Button::KEY_D,
-        'E' => Button::KEY_E,
-        'F' => Button::KEY_F,
-        'G' => Button::KEY_G,
-        'H' => Button::KEY_H,
-        'I' => Button::KEY_I,
-        'J' => Button::KEY_J,
-        'K' => Button::KEY_K,
-        'L' => Button::KEY_L,
-        'M' => Button::KEY_M,
-        'N' => Button::KEY_N,
-        'O' => Button::KEY_O,
-        'P' => Button::KEY_P,
-        'Q' => Button::KEY_Q,
-        'R' => Button::KEY_R,
-        'S' => Button::KEY_S,
-        'T' => Button::KEY_T,
-        'U' => Button::KEY_U,
-        'V' => Button::KEY_V,
-        'W' => Button::KEY_W,
-        'X' => Button::KEY_X,
-        'Y' => Button::KEY_Y,
-        'Z' => Button::KEY_Z,
-        ' ' => Button::KEY_SPACE,
-        '\n' => Button::KEY_RETURN,
-        _ => {
-            log::info!("char {c:?} -> None");
+    pub fn letter_to_key(c: char) -> Option<Button> {
+        if !c.is_ascii() {
             return None;
         }
-    };
 
-    log::info!("char {c:?} -> {key:?}");
+        let c = c.to_ascii_uppercase();
 
-    Some(key)
-}
+        let key = match c {
+            'A' => Button::KEY_A,
+            'B' => Button::KEY_B,
+            'C' => Button::KEY_C,
+            'D' => Button::KEY_D,
+            'E' => Button::KEY_E,
+            'F' => Button::KEY_F,
+            'G' => Button::KEY_G,
+            'H' => Button::KEY_H,
+            'I' => Button::KEY_I,
+            'J' => Button::KEY_J,
+            'K' => Button::KEY_K,
+            'L' => Button::KEY_L,
+            'M' => Button::KEY_M,
+            'N' => Button::KEY_N,
+            'O' => Button::KEY_O,
+            'P' => Button::KEY_P,
+            'Q' => Button::KEY_Q,
+            'R' => Button::KEY_R,
+            'S' => Button::KEY_S,
+            'T' => Button::KEY_T,
+            'U' => Button::KEY_U,
+            'V' => Button::KEY_V,
+            'W' => Button::KEY_W,
+            'X' => Button::KEY_X,
+            'Y' => Button::KEY_Y,
+            'Z' => Button::KEY_Z,
+            ' ' => Button::KEY_SPACE,
+            '\n' => Button::KEY_RETURN,
+            _ => {
+                log::info!("char {c:?} -> None");
+                return None;
+            }
+        };
 
-pub async fn test_type(s: &str) {
-    log::info!("typing {s:?}");
+        log::info!("char {c:?} -> {key:?}");
 
-    for c in s.chars() {
-        let Some(key) = letter_to_key(c) else {
+        Some(key)
+    }
+
+    pub async fn type_string(s: &str) {
+        log::info!("typing {s:?}");
+
+        for c in s.chars() {
+            let Some(key) = letter_to_key(c) else {
             continue;
         };
 
-        for col in 0..COLS {
-            for row in 0..ROWS {
-                if TEST_KEYMAP[row][col] == key {
-                    MATRIX[row][col].press();
-                    Timer::after(Duration::from_millis(20)).await;
-                    MATRIX[row][col].release();
-                    Timer::after(Duration::from_millis(5)).await;
+            for col in 0..COLS {
+                for row in 0..ROWS {
+                    if TEST_KEYMAP[row][col] == key {
+                        MATRIX[row][col].press();
+                        Timer::after(Duration::from_millis(20)).await;
+                        MATRIX[row][col].release();
+                        Timer::after(Duration::from_millis(5)).await;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Press all keys at once
+    pub async fn rollover<const N: usize>(letters: [char; N]) {
+        log::info!("pressing all letters in {letters:?}");
+
+        let keys = letters.map(letter_to_key);
+
+        for key in &keys {
+            for col in 0..COLS {
+                for row in 0..ROWS {
+                    if Some(&TEST_KEYMAP[row][col]) == key.as_ref() {
+                        MATRIX[row][col].press();
+                    }
+                }
+            }
+        }
+
+        Timer::after(Duration::from_millis(200)).await;
+
+        for key in &keys {
+            for col in 0..COLS {
+                for row in 0..ROWS {
+                    if Some(&TEST_KEYMAP[row][col]) == key.as_ref() {
+                        MATRIX[row][col].release();
+                    }
                 }
             }
         }

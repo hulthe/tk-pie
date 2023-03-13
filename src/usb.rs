@@ -25,7 +25,7 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
     });
 
     // Create embassy-usb Config
-    let mut config = Config::new(0xc0de, 0xcafe);
+    let mut config = Config::new(0xb00b, 0x1355);
     config.manufacturer = Some("Tux");
     config.product = Some("Tangentbord1");
     config.serial_number = Some("42069");

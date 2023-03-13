@@ -11,16 +11,23 @@
 #![feature(type_alias_impl_trait)]
 
 extern crate cortex_m_rt;
-extern crate panic_halt;
+//extern crate panic_halt;
 
 mod board;
 mod keyboard;
+mod neopixel;
+mod panic_handler;
 mod usb;
+mod ws2812;
 
 use board::Board;
 use embassy_executor::Spawner;
-use embassy_rp::gpio::{Level, Output};
+use embassy_rp::{
+    gpio::{Level, Output, Pin},
+    pio::PioPeripheral,
+};
 use embassy_time::{Duration, Timer};
+use ws2812::Rgb;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -54,11 +61,20 @@ async fn main(spawner: Spawner) {
         neopixel_power: p.PIN_16,
     };
 
-    let mut led = Output::new(board.d13, Level::High);
+    //let mut led = Output::new(board.d13, Level::Low);
+    let _neopixel_power = Output::new(board.neopixel_power, Level::High);
+
+    let (_, sm, ..) = p.PIO0.split();
+    let mut neopixel = ws2812::Ws2812::new(sm, p.DMA_CH0, board.neopixel.degrade());
+    //let mut neopixel = ws2812::Ws2812::new(sm, p.DMA_CH0, board.d5.degrade());
+
+    neopixel.write(&[Rgb::new(0xb7, 0x31, 0x2c)]).await;
 
     let mut builder = usb::builder(p.USB);
 
     usb::logger::setup(&mut builder).await;
+
+    neopixel.write(&[Rgb::new(0xf0, 0xd0, 0x20)]).await;
 
     log::error!("log_level: error");
     log::warn!("log_level: warn");
@@ -72,12 +88,41 @@ async fn main(spawner: Spawner) {
 
     spawner.must_spawn(usb::run(usb));
 
-    Timer::after(Duration::from_millis(1000)).await;
+    Timer::after(Duration::from_millis(3000)).await;
 
-    crate::keyboard::test_type("Hello there!\n").await;
+    spawner.must_spawn(keyboard::monitor_switch(board.a0.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.a1.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.a2.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.a3.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d2.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d3.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d4.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d7.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d9.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d10.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d11.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d12.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d24.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.d25.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.scl.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.sda.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.mosi.degrade()));
+    spawner.must_spawn(keyboard::monitor_switch(board.miso.degrade()));
 
+    //keyboard::test::type_string("Hello there!\n").await;
+    //keyboard::test::rollover(['h', 'e', 'l', 'o', 't', 'r', 'a', 'b', 'c', 'd', 'i']).await;
     loop {
-        Timer::after(Duration::from_millis(500)).await;
-        led.toggle();
+        //neopixel
+        //    .write(&[
+        //        Rgb::new(0xAA, 0xFF, 0x00),
+        //        Rgb::new(0xAA, 0xFF, 0x00),
+        //        Rgb::new(0xAA, 0xFF, 0x00),
+        //        Rgb::new(0xAA, 0xFF, 0x00),
+        //        Rgb::new(0xAA, 0xFF, 0x00),
+        //        Rgb::new(0xAA, 0xFF, 0x00),
+        //    ])
+        //    .await;
+        //Timer::after(Duration::from_millis(10)).await;
+        Timer::after(Duration::from_secs(10)).await;
     }
 }

@@ -1,3 +1,5 @@
+pub mod report;
+
 use embassy_executor::Spawner;
 use embassy_rp::{peripherals::USB, usb::Driver};
 use embassy_time::{Duration, Timer};
@@ -8,9 +10,12 @@ use embassy_usb::{
 };
 use embassy_usb_driver::EndpointError;
 use static_cell::StaticCell;
-use usbd_hid::descriptor::{KeyboardReport, MouseReport, SerializedDescriptor};
+use usbd_hid::descriptor::{MouseReport, SerializedDescriptor};
 
-use crate::keyboard::{Button, COLS, MATRIX, ROWS, TEST_KEYMAP};
+use crate::{
+    keyboard::{Button, COLS, MATRIX, ROWS, TEST_KEYMAP},
+    usb::keyboard::report::{KeyboardReport, EMPTY_KEYBOARD_REPORT},
+};
 
 use super::MAX_PACKET_SIZE;
 
@@ -84,44 +89,50 @@ async fn task(stream: HidStream, handler: &'static Handler) {
     //}
 }
 
-async fn keyboard_test(mut stream: HidStream, handler: &'static Handler) -> Result<(), Error> {
+async fn keyboard_test(mut stream: HidStream, _handler: &'static Handler) -> Result<(), Error> {
     stream.ready().await;
     loop {
         Timer::after(Duration::from_millis(2)).await;
 
         let keymap = &TEST_KEYMAP;
 
-        let mut keycodes = [0u8; 6];
+        let mut report = EMPTY_KEYBOARD_REPORT;
+        #[cfg(not(feature = "n-key-rollover"))]
         let mut i = 0;
 
+        #[allow(unused_labels)]
         'keyscan: for col in 0..COLS {
             for row in 0..ROWS {
                 if !MATRIX[row][col].is_pressed() {
                     continue;
                 }
 
-                let Button::Key { keycode } = &keymap[row][col];
+                let &Button::Key { keycode } = &keymap[row][col];
                 // else { continue; };
 
-                keycodes[i] = *keycode;
-                i += 1;
-                if i >= keycodes.len() {
-                    break 'keyscan;
+                #[cfg(feature = "n-key-rollover")]
+                report.set_key(keycode);
+
+                #[cfg(not(feature = "n-key-rollover"))]
+                {
+                    report.keycodes[i] = keycode;
+                    i += 1;
+                    if i >= report.keycodes.len() {
+                        break 'keyscan;
+                    }
                 }
             }
         }
 
-        if keycodes.iter().any(|&b| b != 0) {
-            log::info!("keycodes: {keycodes:?}");
+        if report.keycodes != EMPTY_KEYBOARD_REPORT.keycodes {
+            log::debug!("keys: {:x?}", report.keycodes);
         }
-        stream
-            .write_serialize(&KeyboardReport {
-                modifier: 0,
-                reserved: 0,
-                leds: 0,
-                keycodes,
-            })
-            .await?;
+
+        #[cfg(feature = "n-key-rollover")]
+        stream.write(&report.serialized()).await?;
+
+        #[cfg(not(feature = "n-key-rollover"))]
+        stream.write_serialize(&report).await?;
     }
 }
 
