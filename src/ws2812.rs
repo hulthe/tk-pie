@@ -3,27 +3,30 @@ use core::mem::transmute;
 
 use embassy_rp::dma::{self, AnyChannel};
 use embassy_rp::pio::{
-    FifoJoin, PioInstance, PioStateMachine, PioStateMachineInstance, ShiftDirection, SmInstance,
+    FifoJoin, PioInstance, PioPeripheral, PioStateMachine, PioStateMachineInstance, ShiftDirection,
+    SmInstanceBase,
 };
 use embassy_rp::pio_instr_util;
 use embassy_rp::relocate::RelocatedProgram;
 use embassy_rp::{gpio, PeripheralRef};
 
-pub struct Ws2812<P: PioInstance, S: SmInstance> {
-    sm: PioStateMachineInstance<P, S>,
+pub struct Ws2812<P: PioInstance> {
+    sm: PioStateMachineInstance<P, SmInstanceBase<0>>,
     dma: PeripheralRef<'static, AnyChannel>,
 }
 
 /// An Rgb value that can be safely transmuted to u32 for use with Ws2812.
 #[repr(transparent)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Rgb(u32);
 
-impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
-    pub fn new(
-        mut sm: PioStateMachineInstance<P, S>,
+impl<P: PioInstance> Ws2812<P> {
+    pub fn new<PP: PioPeripheral<Pio = P>>(
+        pio: PP,
         dma: impl dma::Channel,
         pin: gpio::AnyPin,
     ) -> Self {
+        let (_, mut sm, ..) = pio.split();
         // prepare the PIO program
         let side_set = pio::SideSet::new(false, 1, false);
         let mut a: pio::Assembler<32> = pio::Assembler::new_with_side_set(side_set);
@@ -94,15 +97,9 @@ impl<P: PioInstance, S: SmInstance> Ws2812<P, S> {
     }
 
     pub async fn write(&mut self, colors: &[Rgb]) {
-        let colors = rgbs_to_u32s(colors);
+        let colors = Rgb::slice_as_u32s(colors);
         self.sm.dma_push(self.dma.reborrow(), colors).await;
     }
-}
-
-#[inline(always)]
-fn rgbs_to_u32s(rgbs: &[Rgb]) -> &[u32] {
-    // SAFETY: Rgb contains only a u32, and is #[repr(transparent)]
-    unsafe { transmute(rgbs) }
 }
 
 impl Rgb {
@@ -111,10 +108,17 @@ impl Rgb {
         Self(u32::from_be_bytes([g, r, b, 0]))
     }
 
+    /// Get the red, green, and blue components of this Rgb.
     #[inline(always)]
     pub const fn components(&self) -> (u8, u8, u8) {
         let [g, r, b, _] = self.0.to_be_bytes();
         (r, g, b)
+    }
+
+    #[inline(always)]
+    pub fn slice_as_u32s(rgbs: &[Rgb]) -> &[u32] {
+        // SAFETY: Rgb contains only a u32, and is #[repr(transparent)]
+        unsafe { transmute(rgbs) }
     }
 }
 

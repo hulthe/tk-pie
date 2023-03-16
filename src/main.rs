@@ -11,7 +11,6 @@
 #![feature(type_alias_impl_trait)]
 
 extern crate cortex_m_rt;
-//extern crate panic_halt;
 
 mod board;
 mod keyboard;
@@ -22,10 +21,7 @@ mod ws2812;
 
 use board::Board;
 use embassy_executor::Spawner;
-use embassy_rp::{
-    gpio::{Level, Output, Pin},
-    pio::PioPeripheral,
-};
+use embassy_rp::gpio::{Level, Output, Pin};
 use embassy_time::{Duration, Timer};
 use ws2812::Rgb;
 
@@ -64,9 +60,8 @@ async fn main(spawner: Spawner) {
     //let mut led = Output::new(board.d13, Level::Low);
     let _neopixel_power = Output::new(board.neopixel_power, Level::High);
 
-    let (_, sm, ..) = p.PIO0.split();
-    let mut neopixel = ws2812::Ws2812::new(sm, p.DMA_CH0, board.neopixel.degrade());
-    //let mut neopixel = ws2812::Ws2812::new(sm, p.DMA_CH0, board.d5.degrade());
+    let mut neopixel = ws2812::Ws2812::new(p.PIO0, p.DMA_CH0, board.neopixel.degrade());
+    let mut neopixels_d5 = ws2812::Ws2812::new(p.PIO1, p.DMA_CH1, board.d5.degrade());
 
     neopixel.write(&[Rgb::new(0xb7, 0x31, 0x2c)]).await;
 
@@ -111,18 +106,32 @@ async fn main(spawner: Spawner) {
 
     //keyboard::test::type_string("Hello there!\n").await;
     //keyboard::test::rollover(['h', 'e', 'l', 'o', 't', 'r', 'a', 'b', 'c', 'd', 'i']).await;
-    loop {
-        //neopixel
-        //    .write(&[
-        //        Rgb::new(0xAA, 0xFF, 0x00),
-        //        Rgb::new(0xAA, 0xFF, 0x00),
-        //        Rgb::new(0xAA, 0xFF, 0x00),
-        //        Rgb::new(0xAA, 0xFF, 0x00),
-        //        Rgb::new(0xAA, 0xFF, 0x00),
-        //        Rgb::new(0xAA, 0xFF, 0x00),
-        //    ])
-        //    .await;
-        //Timer::after(Duration::from_millis(10)).await;
-        Timer::after(Duration::from_secs(10)).await;
+    for w in 0usize.. {
+        neopixel.write(&[wheel(w as u8)]).await;
+        neopixels_d5
+            .write(&[
+                wheel((w + 50) as u8),
+                wheel((w + 100) as u8),
+                wheel((w + 150) as u8),
+                wheel((w + 200) as u8),
+            ])
+            .await;
+        Timer::after(Duration::from_millis(10)).await;
+        //Timer::after(Duration::from_secs(10)).await;
     }
+}
+
+/// Input a value 0 to 255 to get a color value
+// The colours are a transition r - g - b - back to r.
+fn wheel(mut wheel_pos: u8) -> Rgb {
+    wheel_pos = 255 - wheel_pos;
+    if wheel_pos < 85 {
+        return Rgb::new(255 - wheel_pos * 3, 0, wheel_pos * 3);
+    }
+    if wheel_pos < 170 {
+        wheel_pos -= 85;
+        return Rgb::new(0, wheel_pos * 3, 255 - wheel_pos * 3);
+    }
+    wheel_pos -= 170;
+    Rgb::new(wheel_pos * 3, 255 - wheel_pos * 3, 0)
 }
