@@ -1,0 +1,59 @@
+[
+	Layer(
+		buttons: [
+			/* Left */
+			// Row 1
+			Key(Apostrophe),
+			Key(Comma),
+			Key(Period),
+			Key(P),
+			Key(Y),
+
+			// Row 2
+			Key(A),
+			Key(O),
+			Key(E),
+			Key(U),
+			Key(I),
+
+			// Row 3
+			Key(Colon),
+			Key(Q),
+			Key(J),
+			Key(K),
+			Key(X),
+
+			// Thumbpad
+			Mod(LShift),
+			Mod(LCtrl),
+			NextLayer,
+
+			/* Right */
+			// Row 1
+			Key(F),
+			Key(G),
+			Key(C),
+			Key(R),
+			Key(L),
+
+			// Row 2
+			Key(D),
+			Key(H),
+			Key(T),
+			Key(N),
+			Key(S),
+
+			// Row 3
+			Key(B),
+			Key(M),
+			Key(W),
+			Key(V),
+			Key(Z),
+
+			// Thumbpad
+			PrevLayer,
+			Mod(RAlt),
+			Mod(RMod),
+		],
+	)
+]

@@ -10,23 +10,32 @@
 #![no_main]
 #![feature(type_alias_impl_trait)]
 
+extern crate alloc;
 extern crate cortex_m_rt;
 
+mod allocator;
 mod board;
 mod keyboard;
 mod neopixel;
 mod panic_handler;
 mod usb;
+mod util;
 mod ws2812;
 
+use alloc::vec::Vec;
 use board::Board;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::{Level, Output, Pin};
 use embassy_time::{Duration, Timer};
+use tgnt::layer::Layer;
 use ws2812::Rgb;
+
+use crate::keyboard::KeyboardConfig;
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
+    allocator::init();
+
     let p = embassy_rp::init(Default::default());
 
     let board = Board {
@@ -85,27 +94,42 @@ async fn main(spawner: Spawner) {
 
     Timer::after(Duration::from_millis(3000)).await;
 
-    spawner.must_spawn(keyboard::monitor_switch(board.a0.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.a1.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.a2.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.a3.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d2.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d3.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d4.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d7.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d9.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d10.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d11.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d12.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d24.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.d25.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.scl.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.sda.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.mosi.degrade()));
-    spawner.must_spawn(keyboard::monitor_switch(board.miso.degrade()));
+    let layers = include_bytes!("layers.pc");
+    let Ok(layers): Result<Vec<Layer>, _> = postcard::from_bytes(layers) else {
+        log::error!("Failed to deserialize layer config");
+        loop_forever().await
+    };
 
-    //keyboard::test::type_string("Hello there!\n").await;
-    //keyboard::test::rollover(['h', 'e', 'l', 'o', 't', 'r', 'a', 'b', 'c', 'd', 'i']).await;
+    let keyboard = KeyboardConfig {
+        layers,
+        pins: [
+            // row 1
+            board.d24.degrade(),
+            board.a3.degrade(),
+            board.a2.degrade(),
+            board.a1.degrade(),
+            board.a0.degrade(),
+            // row 2
+            board.d25.degrade(),
+            board.sck.degrade(),
+            board.mosi.degrade(),
+            board.miso.degrade(),
+            board.d2.degrade(),
+            // row 3
+            board.d12.degrade(),
+            board.d11.degrade(),
+            board.d10.degrade(),
+            board.d9.degrade(),
+            board.d3.degrade(),
+            // thumbpad
+            board.d7.degrade(),
+            board.scl.degrade(),
+            board.sda.degrade(),
+        ],
+    };
+
+    keyboard.create().await;
+
     for w in 0usize.. {
         neopixel.write(&[wheel(w as u8)]).await;
         neopixels_d5
@@ -117,7 +141,12 @@ async fn main(spawner: Spawner) {
             ])
             .await;
         Timer::after(Duration::from_millis(10)).await;
-        //Timer::after(Duration::from_secs(10)).await;
+    }
+}
+
+async fn loop_forever() -> ! {
+    loop {
+        Timer::after(Duration::from_secs(1)).await;
     }
 }
 

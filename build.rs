@@ -8,12 +8,19 @@
 //! updating `memory.x` ensures a rebuild of the application with the
 //! new memory settings.
 
-use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::{env, fs};
+
+use tgnt::layer::Layer;
 
 fn main() {
+    memory();
+    serialize_layout();
+}
+
+fn memory() {
     // Put `memory.x` in our output directory and ensure it's
     // on the linker search path.
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
@@ -35,4 +42,18 @@ fn main() {
     println!("cargo:rustc-link-arg-bins=-Tlink.x");
     println!("cargo:rustc-link-arg-bins=-Tlink-rp.x");
     //println!("cargo:rustc-link-arg-bins=-Tdefmt.x");
+}
+
+fn serialize_layout() {
+    println!("cargo:rerun-if-changed=layers.ron");
+
+    let layers = fs::read_to_string("layers.ron").expect("Failed to read layers.ron");
+    let layers: Vec<Layer> = ron::from_str(&layers).expect("Failed to deserialize layers.ron");
+
+    let serialized = postcard::to_stdvec(&layers).expect("Failed to serialize layers");
+
+    File::create("./src/layers.pc")
+        .expect("Failed to create layers.pc")
+        .write_all(&serialized)
+        .expect("Failed to write layers.pc");
 }

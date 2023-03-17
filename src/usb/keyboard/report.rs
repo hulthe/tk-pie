@@ -5,7 +5,7 @@
 /// keyboard LEDs.
 ///
 /// Unlike usbd_hids KeyboardReport, this one supports N-key rollover.
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 #[cfg(feature = "n-key-rollover")]
 pub struct KeyboardReport {
     pub modifier: u8,
@@ -14,6 +14,7 @@ pub struct KeyboardReport {
     pub keycodes: [u8; 13],
 }
 
+use tgnt::keys::Key;
 #[cfg(not(feature = "n-key-rollover"))]
 pub use usbd_hid::descriptor::KeyboardReport;
 
@@ -33,17 +34,30 @@ pub const EMPTY_KEYBOARD_REPORT: KeyboardReport = KeyboardReport {
 
 #[cfg(feature = "n-key-rollover")]
 impl KeyboardReport {
-    pub fn set_key(&mut self, keycode: u8) {
-        log::info!("setting keycode: {keycode}");
+    pub fn set_key(&mut self, key: Key, pressed: bool) {
+        let keycode = u8::from(key);
+        log::debug!("setting key: {key:?} ({keycode:x})");
         let byte = keycode >> 3;
         let bit = keycode & 0b111;
         let mask = 1 << bit;
 
         if let Some(k) = self.keycodes.get_mut(byte as usize) {
-            *k |= mask;
+            if pressed {
+                *k |= mask;
+            } else {
+                *k &= !mask;
+            }
         } else {
             log::warn!("Tried to set out-of-range keycode: {keycode:x}");
         }
+    }
+
+    pub fn press_key(&mut self, key: Key) {
+        self.set_key(key, true)
+    }
+
+    pub fn release_key(&mut self, key: Key) {
+        self.set_key(key, false)
     }
 
     pub fn serialized(&self) -> [u8; 14] {

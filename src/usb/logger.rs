@@ -1,8 +1,10 @@
+use crate::util::CS;
+
 use super::MAX_PACKET_SIZE;
 use core::fmt::Write as WriteFmt;
 use embassy_executor::Spawner;
 use embassy_rp::{peripherals::USB, usb::Driver};
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, pipe::Pipe};
+use embassy_sync::pipe::Pipe;
 use embassy_time::Instant;
 use embassy_usb::{
     class::cdc_acm::{self, CdcAcmClass},
@@ -12,7 +14,7 @@ use log::{Metadata, Record};
 use static_cell::StaticCell;
 
 pub const BUFFER_SIZE: usize = 16 * 1024;
-static BUFFER: Pipe<CriticalSectionRawMutex, BUFFER_SIZE> = Pipe::new();
+static BUFFER: Pipe<CS, BUFFER_SIZE> = Pipe::new();
 static STATE: StaticCell<cdc_acm::State<'static>> = StaticCell::new();
 
 struct UsbLogger;
@@ -62,7 +64,7 @@ impl log::Log for UsbLogger {
             let s = now.as_secs();
             let ms = now.as_millis() % 1000;
             let level = record.metadata().level();
-            let _ = write!(w, "[{s}.{ms:04}] ({level}) {}\n", record.args());
+            let _ = writeln!(w, "[{s}.{ms:04}] ({level}) {}", record.args());
         }
     }
 

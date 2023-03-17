@@ -2,6 +2,7 @@ pub mod report;
 
 use embassy_executor::Spawner;
 use embassy_rp::{peripherals::USB, usb::Driver};
+use embassy_sync::mutex::Mutex;
 use embassy_time::{Duration, Timer};
 use embassy_usb::{
     class::hid::{self, HidReaderWriter, ReadError, ReportId, RequestHandler},
@@ -13,8 +14,8 @@ use static_cell::StaticCell;
 use usbd_hid::descriptor::{MouseReport, SerializedDescriptor};
 
 use crate::{
-    keyboard::{Button, COLS, MATRIX, ROWS, TEST_KEYMAP},
     usb::keyboard::report::{KeyboardReport, EMPTY_KEYBOARD_REPORT},
+    util::CS,
 };
 
 use super::MAX_PACKET_SIZE;
@@ -22,6 +23,8 @@ use super::MAX_PACKET_SIZE;
 struct Handler;
 
 static CONTEXT: StaticCell<Context> = StaticCell::new();
+
+pub static KB_REPORT: Mutex<CS, KeyboardReport> = Mutex::new(EMPTY_KEYBOARD_REPORT);
 
 struct Context {
     handler: Handler,
@@ -94,36 +97,7 @@ async fn keyboard_test(mut stream: HidStream, _handler: &'static Handler) -> Res
     loop {
         Timer::after(Duration::from_millis(2)).await;
 
-        let keymap = &TEST_KEYMAP;
-
-        let mut report = EMPTY_KEYBOARD_REPORT;
-        #[cfg(not(feature = "n-key-rollover"))]
-        let mut i = 0;
-
-        #[allow(unused_labels)]
-        'keyscan: for col in 0..COLS {
-            for row in 0..ROWS {
-                if !MATRIX[row][col].is_pressed() {
-                    continue;
-                }
-
-                let &Button::Key { keycode } = &keymap[row][col];
-                // else { continue; };
-
-                #[cfg(feature = "n-key-rollover")]
-                report.set_key(keycode);
-
-                #[cfg(not(feature = "n-key-rollover"))]
-                {
-                    report.keycodes[i] = keycode;
-                    i += 1;
-                    if i >= report.keycodes.len() {
-                        break 'keyscan;
-                    }
-                }
-            }
-        }
-
+        let report = KB_REPORT.lock().await.clone();
         if report.keycodes != EMPTY_KEYBOARD_REPORT.keycodes {
             log::debug!("keys: {:x?}", report.keycodes);
         }
