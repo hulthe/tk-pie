@@ -1,3 +1,4 @@
+use embassy_executor::Spawner;
 use embassy_rp::{interrupt, peripherals::USB, usb::Driver};
 use embassy_usb::{Builder, Config, UsbDevice};
 use static_cell::StaticCell;
@@ -15,6 +16,21 @@ struct State {
 }
 
 static STATE: StaticCell<State> = StaticCell::new();
+
+pub async fn setup_logger_and_keyboard(usb: USB) {
+    let mut builder = builder(usb);
+    logger::setup(&mut builder).await;
+
+    log::error!("log_level: error");
+    log::warn!("log_level: warn");
+    log::info!("log_level: info");
+    log::debug!("log_level: debug");
+    log::trace!("log_level: trace");
+
+    keyboard::setup(&mut builder).await;
+    let usb = builder.build();
+    Spawner::for_current_executor().await.must_spawn(run(usb));
+}
 
 pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
     let state = STATE.init(State {

@@ -99,7 +99,7 @@ async fn keyboard_test(mut stream: HidStream, _handler: &'static Handler) -> Res
 
         let report = KB_REPORT.lock().await.clone();
         if report.keycodes != EMPTY_KEYBOARD_REPORT.keycodes {
-            log::debug!("keys: {:x?}", report.keycodes);
+            log::trace!("keys: {:x?}", report.keycodes);
         }
 
         #[cfg(feature = "n-key-rollover")]

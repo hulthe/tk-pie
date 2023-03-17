@@ -17,7 +17,8 @@ use tgnt::layer::Layer;
 
 fn main() {
     memory();
-    serialize_layout();
+    serialize_layout("./layers-left.ron", "./src/bin/layers-left.pc");
+    serialize_layout("./layers-right.ron", "./src/bin/layers-right.pc");
 }
 
 fn memory() {
@@ -44,16 +45,16 @@ fn memory() {
     //println!("cargo:rustc-link-arg-bins=-Tdefmt.x");
 }
 
-fn serialize_layout() {
-    println!("cargo:rerun-if-changed=layers.ron");
+fn serialize_layout(ron_path: &str, postcard_path: &str) {
+    println!("cargo:rerun-if-changed={ron_path}");
 
-    let layers = fs::read_to_string("layers.ron").expect("Failed to read layers.ron");
-    let layers: Vec<Layer> = ron::from_str(&layers).expect("Failed to deserialize layers.ron");
+    let layers = fs::read_to_string(ron_path).expect("Failed to read .ron");
+    let layers: Vec<Layer> = ron::from_str(&layers).expect("Failed to deserialize .ron");
 
     let serialized = postcard::to_stdvec(&layers).expect("Failed to serialize layers");
 
-    File::create("./src/layers.pc")
-        .expect("Failed to create layers.pc")
+    File::create(postcard_path)
+        .expect("Failed to create .pc")
         .write_all(&serialized)
-        .expect("Failed to write layers.pc");
+        .expect("Failed to write .pc");
 }

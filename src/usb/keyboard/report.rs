@@ -36,7 +36,6 @@ pub const EMPTY_KEYBOARD_REPORT: KeyboardReport = KeyboardReport {
 impl KeyboardReport {
     pub fn set_key(&mut self, key: Key, pressed: bool) {
         let keycode = u8::from(key);
-        log::debug!("setting key: {key:?} ({keycode:x})");
         let byte = keycode >> 3;
         let bit = keycode & 0b111;
         let mask = 1 << bit;
@@ -48,7 +47,7 @@ impl KeyboardReport {
                 *k &= !mask;
             }
         } else {
-            log::warn!("Tried to set out-of-range keycode: {keycode:x}");
+            log::warn!("Tried to set out-of-range keycode: 0x{keycode:x}");
         }
     }
 

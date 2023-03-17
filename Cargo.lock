@@ -671,36 +671,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itsybitsy_rp2040_keyboard"
-version = "0.1.0"
-dependencies = [
- "cortex-m",
- "cortex-m-rt",
- "embassy-executor",
- "embassy-futures",
- "embassy-rp",
- "embassy-sync",
- "embassy-time",
- "embassy-usb",
- "embassy-usb-driver",
- "embassy-usb-logger",
- "embedded-alloc",
- "embedded-hal 0.2.7",
- "embedded-io",
- "futures",
- "log",
- "pio",
- "pio-proc",
- "postcard",
- "ron",
- "smart-leds",
- "static_cell",
- "tgnt",
- "usb-device",
- "usbd-hid",
-]
-
-[[package]]
 name = "lalrpop"
 version = "0.19.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1223,6 +1193,36 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "tangentbord1"
+version = "0.1.0"
+dependencies = [
+ "cortex-m",
+ "cortex-m-rt",
+ "embassy-executor",
+ "embassy-futures",
+ "embassy-rp",
+ "embassy-sync",
+ "embassy-time",
+ "embassy-usb",
+ "embassy-usb-driver",
+ "embassy-usb-logger",
+ "embedded-alloc",
+ "embedded-hal 0.2.7",
+ "embedded-io",
+ "futures",
+ "log",
+ "pio",
+ "pio-proc",
+ "postcard",
+ "ron",
+ "smart-leds",
+ "static_cell",
+ "tgnt",
+ "usb-device",
+ "usbd-hid",
 ]
 
 [[package]]

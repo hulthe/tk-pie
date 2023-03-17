@@ -2,7 +2,7 @@
 
 set -e
 
-cargo run
+cargo run --bin $1
 
 printf "waiting for serial log"
 

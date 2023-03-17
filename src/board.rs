@@ -1,8 +1,26 @@
-use embassy_rp::peripherals::*;
+use embassy_rp::{peripherals::*, Peripherals};
 
 /// Pinouts for the ItsyBitsy
-#[allow(dead_code)]
+#[allow(dead_code, non_snake_case)]
 pub struct Board {
+    pub USB: USB,
+    pub UART0: UART0,
+    pub UART1: UART1,
+    pub PIO0: PIO0,
+    pub PIO1: PIO1,
+    pub DMA_CH0: DMA_CH0,
+    pub DMA_CH1: DMA_CH1,
+    pub DMA_CH2: DMA_CH2,
+    pub DMA_CH3: DMA_CH3,
+    pub DMA_CH4: DMA_CH4,
+    pub DMA_CH5: DMA_CH5,
+    pub DMA_CH6: DMA_CH6,
+    pub DMA_CH7: DMA_CH7,
+    pub DMA_CH8: DMA_CH8,
+    pub DMA_CH9: DMA_CH9,
+    pub DMA_CH10: DMA_CH10,
+
+    // pins
     pub a0: PIN_26,
     pub a1: PIN_27,
     pub a2: PIN_28,
@@ -28,4 +46,54 @@ pub struct Board {
     pub d13: PIN_11,
     pub neopixel: PIN_17,
     pub neopixel_power: PIN_16,
+}
+
+impl From<Peripherals> for Board {
+    fn from(p: Peripherals) -> Self {
+        Board {
+            USB: p.USB,
+            UART0: p.UART0,
+            UART1: p.UART1,
+            PIO0: p.PIO0,
+            PIO1: p.PIO1,
+            DMA_CH0: p.DMA_CH0,
+            DMA_CH1: p.DMA_CH1,
+            DMA_CH2: p.DMA_CH2,
+            DMA_CH3: p.DMA_CH3,
+            DMA_CH4: p.DMA_CH4,
+            DMA_CH5: p.DMA_CH5,
+            DMA_CH6: p.DMA_CH6,
+            DMA_CH7: p.DMA_CH7,
+            DMA_CH8: p.DMA_CH8,
+            DMA_CH9: p.DMA_CH9,
+            DMA_CH10: p.DMA_CH10,
+
+            // pins
+            a0: p.PIN_26,
+            a1: p.PIN_27,
+            a2: p.PIN_28,
+            a3: p.PIN_29,
+            d24: p.PIN_24,
+            d25: p.PIN_25,
+            sck: p.PIN_18,
+            mosi: p.PIN_19,
+            miso: p.PIN_20,
+            d2: p.PIN_12,
+            d3: p.PIN_5,
+            d4: p.PIN_4,
+            rx: p.PIN_1,
+            tx: p.PIN_0,
+            sda: p.PIN_2,
+            scl: p.PIN_3,
+            d5: p.PIN_14,
+            d7: p.PIN_6,
+            d9: p.PIN_7,
+            d10: p.PIN_8,
+            d11: p.PIN_9,
+            d12: p.PIN_10,
+            d13: p.PIN_11,
+            neopixel: p.PIN_17,
+            neopixel_power: p.PIN_16,
+        }
+    }
 }
