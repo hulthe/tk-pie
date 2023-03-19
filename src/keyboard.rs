@@ -97,24 +97,25 @@ async fn switch_task(switch_num: usize, pin: AnyPin, layers: &'static [Layer]) -
                 KB_REPORT.lock().await.release_key(key);
                 continue;
             }
-            Button::Mod(modifier) => {
-                // TODO
-                //KB_REPORT.lock().await.press_mod(modifier);
-                //pin.wait_for_high().await;
-                //KB_REPORT.lock().await.release_mod(modifier);
-                //continue;
+            &Button::Mod(modifier) => {
+                KB_REPORT.lock().await.press_modifier(modifier);
+                wait_for_release.await;
+                KB_REPORT.lock().await.release_modifier(modifier);
+                continue;
             }
-            Button::ModTap { keycode, modifier } => {
+            &Button::ModTap { keycode, modifier } => {
                 select_biased! {
                     _ = Timer::after(MOD_TAP_TIME).fuse() => {
-                        // TODO: Modifier
+                        KB_REPORT.lock().await.press_modifier(modifier);
                         pin.wait_for_high().await;
+                        KB_REPORT.lock().await.release_modifier(modifier);
+                        debug!("switch {switch_num} button {button:?} released");
                         continue;
                     }
                     _ = wait_for_release.fuse() => {
-                        KB_REPORT.lock().await.press_key(*keycode);
+                        KB_REPORT.lock().await.press_key(keycode);
                         Timer::after(Duration::from_millis(10)).await;
-                        KB_REPORT.lock().await.release_key(*keycode);
+                        KB_REPORT.lock().await.release_key(keycode);
                         continue;
                     }
                 }
@@ -122,10 +123,12 @@ async fn switch_task(switch_num: usize, pin: AnyPin, layers: &'static [Layer]) -
             Button::NextLayer => {
                 let next_layer = (current_layer + 1) % layer_count;
                 CURRENT_LAYER.store(next_layer, Ordering::Relaxed);
+                debug!("switched to layer {next_layer}");
             }
             Button::PrevLayer => {
                 let prev_layer = current_layer.checked_sub(1).unwrap_or(layer_count - 1);
                 CURRENT_LAYER.store(prev_layer, Ordering::Relaxed);
+                debug!("switched to layer {prev_layer}");
             }
             Button::None => {}
         }

@@ -7,21 +7,24 @@
 /// Unlike usbd_hids KeyboardReport, this one supports N-key rollover.
 #[derive(Clone, PartialEq, Eq)]
 #[cfg(feature = "n-key-rollover")]
+#[repr(C, packed)]
 pub struct KeyboardReport {
     pub modifier: u8,
 
-    /// Bitmap representing all keycodes from 0 to 104
-    pub keycodes: [u8; 13],
+    /// Bitmap representing all keycodes from 0 to 215
+    pub keycodes: [u8; 27],
 }
 
-use tgnt::keys::Key;
+use core::mem::{size_of, transmute};
+use tgnt::{button::Modifier, keys::Key};
+
 #[cfg(not(feature = "n-key-rollover"))]
-pub use usbd_hid::descriptor::KeyboardReport;
+pub use ::usbd_hid::descriptor::KeyboardReport;
 
 #[cfg(feature = "n-key-rollover")]
 pub const EMPTY_KEYBOARD_REPORT: KeyboardReport = KeyboardReport {
     modifier: 0,
-    keycodes: [0; 13],
+    keycodes: [0; 27],
 };
 
 #[cfg(not(feature = "n-key-rollover"))]
@@ -34,6 +37,7 @@ pub const EMPTY_KEYBOARD_REPORT: KeyboardReport = KeyboardReport {
 
 #[cfg(feature = "n-key-rollover")]
 impl KeyboardReport {
+    #[inline(always)]
     pub fn set_key(&mut self, key: Key, pressed: bool) {
         let keycode = u8::from(key);
         let byte = keycode >> 3;
@@ -51,29 +55,43 @@ impl KeyboardReport {
         }
     }
 
+    #[inline(always)]
     pub fn press_key(&mut self, key: Key) {
         self.set_key(key, true)
     }
 
+    #[inline(always)]
     pub fn release_key(&mut self, key: Key) {
         self.set_key(key, false)
     }
 
-    pub fn serialized(&self) -> [u8; 14] {
-        let [a, b, c, d, e, f, g, h, i, j, k, l, m] = self.keycodes;
-        [self.modifier, a, b, c, d, e, f, g, h, i, j, k, l, m]
+    #[inline(always)]
+    pub fn set_modifier(&mut self, modifier: Modifier, pressed: bool) {
+        if pressed {
+            self.modifier |= u8::from(modifier);
+        } else {
+            self.modifier &= !u8::from(modifier);
+        }
+    }
+
+    #[inline(always)]
+    pub fn press_modifier(&mut self, modifier: Modifier) {
+        self.set_modifier(modifier, true)
+    }
+
+    #[inline(always)]
+    pub fn release_modifier(&mut self, modifier: Modifier) {
+        self.set_modifier(modifier, false)
+    }
+
+    #[inline(always)]
+    pub fn as_bytes(&self) -> &[u8; size_of::<KeyboardReport>()] {
+        // SAFETY: KeyboardReport is repr(C, packed) and contains only u8s.
+        unsafe { transmute(self) }
     }
 }
 
 // bitmasks for the `modifier` field
-pub const MOD_LCTRL: u8 = 0x01;
-pub const MOD_LSHIFT: u8 = 0x02;
-pub const MOD_LALT: u8 = 0x04;
-pub const MOD_LSUPER: u8 = 0x08;
-pub const MOD_RCTRL: u8 = 0x10;
-pub const MOD_RSHIFT: u8 = 0x20;
-pub const MOD_RALT: u8 = 0x40;
-pub const MOD_RSUPER: u8 = 0x80;
 
 #[cfg(feature = "n-key-rollover")]
 impl usbd_hid::descriptor::SerializedDescriptor for KeyboardReport {
@@ -95,8 +113,10 @@ impl usbd_hid::descriptor::SerializedDescriptor for KeyboardReport {
             0x81, 0x02, // input (variable)
             //
             0x19, 0x00, // local usage minimum
-            0x29, 0x67, // local usage maximum
-            0x95, 0x68, // report count
+            //0x29, 0x67, // local usage maximum (0x67)
+            //0x95, 0x68, // report count (0x68)
+            0x29, 215, // local usage maximum (215)
+            0x95, 216, // report count (216)
             0x81, 0x02, // input (variable)
             //
             0x05, 0x08, // usage page 8 (led page)

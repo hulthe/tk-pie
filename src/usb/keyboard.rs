@@ -103,7 +103,7 @@ async fn keyboard_test(mut stream: HidStream, _handler: &'static Handler) -> Res
         }
 
         #[cfg(feature = "n-key-rollover")]
-        stream.write(&report.serialized()).await?;
+        stream.write(report.as_bytes()).await?;
 
         #[cfg(not(feature = "n-key-rollover"))]
         stream.write_serialize(&report).await?;
