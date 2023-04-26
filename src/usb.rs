@@ -33,7 +33,9 @@ pub async fn setup_logger_and_keyboard(usb: USB) {
 }
 
 pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
-    let state = STATE.init(State {
+    // calling init here can't panic because this function can't be called
+    // twice since we are taking ownership of the only USB peripheral.
+    let state = STATE.init_with(|| State {
         device_descriptor: [0; 256],
         config_descriptor: [0; 256],
         bos_descriptor: [0; 256],

@@ -15,7 +15,6 @@ use static_cell::StaticCell;
 
 pub const BUFFER_SIZE: usize = 16 * 1024;
 static BUFFER: Pipe<CS, BUFFER_SIZE> = Pipe::new();
-static STATE: StaticCell<cdc_acm::State<'static>> = StaticCell::new();
 
 struct UsbLogger;
 
@@ -23,21 +22,18 @@ pub async fn setup(usb_builder: &mut Builder<'static, Driver<'static, USB>>) {
     unsafe {
         static LOGGER: UsbLogger = UsbLogger;
         log::set_logger_racy(&LOGGER).unwrap();
-        log::set_max_level(log::LevelFilter::Debug);
     }
+    log::set_max_level(log::LevelFilter::Debug);
 
     let spawner = Spawner::for_current_executor().await;
 
+    static STATE: StaticCell<cdc_acm::State<'static>> = StaticCell::new();
     let state = STATE.init(cdc_acm::State::new());
 
     let class = CdcAcmClass::new(usb_builder, state, MAX_PACKET_SIZE as u16);
 
     spawner.must_spawn(log_task(class));
 }
-
-//pub async fn print(s: &str) {
-//    BUFFER.writer().write_all(s.as_bytes()).await.ok(/* infallible */);
-//}
 
 #[embassy_executor::task]
 async fn log_task(mut class: CdcAcmClass<'static, Driver<'static, USB>>) {

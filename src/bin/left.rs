@@ -29,7 +29,7 @@ async fn main(_spawner: Spawner) {
     let _neopixel_power = Output::new(board.neopixel_power, Level::High);
 
     let mut neopixel = Ws2812::new(board.PIO0, board.DMA_CH0, board.neopixel.degrade());
-    let mut neopixels_d5 = Ws2812::new(board.PIO1, board.DMA_CH1, board.d5.degrade());
+    let neopixels_d5 = Ws2812::new(board.PIO1, board.DMA_CH1, board.d5.degrade());
 
     neopixel.write(&[Rgb::new(0xFF, 0x00, 0x00)]).await;
     usb::setup_logger_and_keyboard(board.USB).await;
@@ -44,7 +44,6 @@ async fn main(_spawner: Spawner) {
     };
 
     let keyboard = KeyboardConfig {
-        layers,
         pins: [
             // row 1
             board.d24.degrade(),
@@ -69,20 +68,17 @@ async fn main(_spawner: Spawner) {
             board.scl.degrade(),
             board.sda.degrade(),
         ],
+        // the index of the LEDs is different than the switch index.
+        // each number is the index of the LED for the switch of that index.
+        led_map: [4, 3, 2, 1, 0, 5, 6, 7, 8, 9, 14, 13, 12, 11, 10, 15, 16, 17],
+        led_driver: neopixels_d5,
+        layers,
     };
 
     keyboard.create().await;
 
     for w in 0usize.. {
         neopixel.write(&[wheel(w as u8)]).await;
-        neopixels_d5
-            .write(&[
-                wheel((w + 50) as u8),
-                wheel((w + 100) as u8),
-                wheel((w + 150) as u8),
-                wheel((w + 200) as u8),
-            ])
-            .await;
         Timer::after(Duration::from_millis(10)).await;
     }
 }

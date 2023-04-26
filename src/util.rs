@@ -15,13 +15,17 @@ pub async fn stall() -> ! {
 // The colours are a transition r - g - b - back to r.
 pub fn wheel(mut wheel_pos: u8) -> Rgb {
     wheel_pos = 255 - wheel_pos;
-    if wheel_pos < 85 {
-        return Rgb::new(255 - wheel_pos * 3, 0, wheel_pos * 3);
-    }
-    if wheel_pos < 170 {
+    let rgb = if wheel_pos < 85 {
+        Rgb::new(255 - wheel_pos * 3, 0, wheel_pos * 3)
+    } else if wheel_pos < 170 {
         wheel_pos -= 85;
-        return Rgb::new(0, wheel_pos * 3, 255 - wheel_pos * 3);
-    }
-    wheel_pos -= 170;
-    Rgb::new(wheel_pos * 3, 255 - wheel_pos * 3, 0)
+        Rgb::new(0, wheel_pos * 3, 255 - wheel_pos * 3)
+    } else {
+        wheel_pos -= 170;
+        Rgb::new(wheel_pos * 3, 255 - wheel_pos * 3, 0)
+    };
+
+    // tone the brightness down a bit, sheesh.
+    //rgb / 4
+    rgb
 }

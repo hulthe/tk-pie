@@ -6,6 +6,7 @@ extern crate alloc;
 pub mod allocator;
 pub mod board;
 pub mod keyboard;
+pub mod lights;
 pub mod neopixel;
 pub mod panic_handler;
 pub mod usb;

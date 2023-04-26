@@ -1,5 +1,6 @@
 use core::fmt::{self, Debug};
 use core::mem::transmute;
+use core::ops::Div;
 
 use embassy_rp::dma::{self, AnyChannel};
 use embassy_rp::pio::{
@@ -126,5 +127,14 @@ impl Debug for Rgb {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (r, g, b) = self.components();
         f.debug_tuple("Rgb").field(&r).field(&g).field(&b).finish()
+    }
+}
+
+impl Div<u8> for Rgb {
+    type Output = Rgb;
+
+    fn div(self, d: u8) -> Self::Output {
+        let (r, g, b) = self.components();
+        Rgb::new(r / d, g / d, b / d)
     }
 }
