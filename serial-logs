@@ -1,0 +1,37 @@
+#!/usr/bin/env nu
+
+let level_colors = {
+	TRACE: (ansi m)
+	DEBUG: (ansi c)
+	INFO: (ansi g)
+	WARN: (ansi y)
+	ERROR: (ansi rb)
+}
+
+# Attach to serial logs of a running firmware
+def main [
+	--serial (-s): string # The serial device to get logs from.
+] {
+	let serial = if $serial == null {
+		"/dev/serial/by-id/usb-Tux_Tangentbord1_42069-if00"
+	} else {
+		$serial
+	}
+
+	print -n ("waiting for serial log " + $serial)
+
+	while not ($serial | path exists) {
+		print -n "."
+		sleep 500ms
+	}
+	echo
+
+	cat $serial |
+		parse -r '\[(?<timestamp>[0-9\.]*)\] \((?<level>\w*)\) (?<message>.*)' |
+		each { |it|
+			print -n "[" (ansi d) $it.timestamp (ansi reset) "] "
+			print -n "(" ($level_colors | get $it.level) $it.level (ansi reset) ") "
+			print $it.message
+		}
+}
+

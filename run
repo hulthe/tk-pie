@@ -1,19 +1,26 @@
-#!/bin/sh
+#!/usr/bin/env nu
 
-set -e
+# Build, flash, and run the firmware.
+#
+# Will also attach to serial logs
+def main [
+	bin: string # Which firmware to run, 'left' or 'right'.
+	--serial (-s): string # The serial device to get logs from.
+	--probe (-p): bool # Flash & run using probe-run instead of elf2uf2
+] {
+	if $probe {
+		cargo build --bin $bin
+		probe-run --chip RP2040 --speed 4000 ("./target/thumbv6m-none-eabi/debug/" + $bin)
+	} else {
+		cargo run --bin $bin
+	}
 
-cargo run --bin $1
+	let log_script = ($env.FILE_PWD | path join "serial-logs")
 
-printf "waiting for serial log"
+	if $serial == null {
+		nu $log_script
+	} else {
+		nu $log_script --serial $serial
+	}
+}
 
-SERIAL=/dev/ttyACM0
-while [ ! -e $SERIAL ]
-do
-	printf "."
-	sleep 1
-done
-echo
-
-sleep 1
-
-cat $SERIAL
