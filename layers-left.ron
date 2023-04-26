@@ -9,10 +9,10 @@
 			Key(Y),
 
 			// Row 2
-			Key(A),
-			Key(O),
-			Key(E),
-			Key(U),
+			ModTap(A, LMod),
+			ModTap(O, LAlt),
+			ModTap(E, LShift),
+			ModTap(U, LCtrl),
 			Key(I),
 
 			// Row 3
@@ -23,9 +23,38 @@
 			Key(X),
 
 			// Thumbpad
-			Mod(LShift),
-			Mod(LCtrl),
+			Key(Backspace),
+			Key(Space),
 			NextLayer,
 		],
-	)
+	),
+	Layer(
+		buttons: [
+			// Row 1
+			Key(D1),
+			Key(D2),
+			Key(D3),
+			Key(D4),
+			Key(D5),
+
+			// Row 2
+			ModTap(BackslashPipe, LMod),
+			ModTap(Dash, LAlt),
+			ModTap(LBracket, LShift),
+			ModTap(RBracket, LCtrl),
+			Key(Tab),
+
+			// Row 3
+			None,
+			None,
+			None,
+			None,
+			None,
+
+			// Thumbpad
+			Key(Backspace),
+			Key(Space),
+			NextLayer,
+		],
+	),
 ]
