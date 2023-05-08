@@ -10,10 +10,10 @@
 
 			// Row 2
 			Key(D),
-			Key(H),
-			Key(T),
-			Key(N),
-			Key(S),
+			ModTap(H, RCtrl),
+			ModTap(T, RShift),
+			ModTap(N, RAlt),
+			ModTap(S, RMod),
 
 			// Row 3
 			Key(B),
@@ -24,8 +24,37 @@
 
 			// Thumbpad
 			PrevLayer,
-			Mod(RAlt),
-			Mod(RMod),
+			Key(Return),
+			Key(Delete),
 		],
-	)
+	),
+	Layer(
+		buttons: [
+			// Row 1
+			Key(D6),
+			Key(D7),
+			Key(D8),
+			Key(D9),
+			Key(D0),
+
+			// Row 2
+			Key(Apostrophe),
+			ModTap(Slash, RCtrl),
+			ModTap(Equal, RShift),
+			ModTap(Accent, RAlt),
+			ModTap(Pound, RMod),
+
+			// Row 3
+			None,
+			None,
+			None,
+			None,
+			None,
+
+			// Thumbpad
+			PrevLayer,
+			Key(Return),
+			Key(Delete),
+		],
+	),
 ]
