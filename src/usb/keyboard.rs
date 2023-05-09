@@ -14,6 +14,7 @@ use static_cell::StaticCell;
 use usbd_hid::descriptor::{MouseReport, SerializedDescriptor};
 
 use crate::{
+    keyboard::{Event, EventKind, KbEvents},
     usb::keyboard::report::{KeyboardReport, EMPTY_KEYBOARD_REPORT},
     util::CS,
 };
@@ -31,7 +32,7 @@ struct Context {
     state: hid::State<'static>,
 }
 
-pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>) {
+pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>, events: KbEvents) {
     log::info!("setting up usb hid");
 
     let context = CONTEXT.init(Context {
@@ -52,6 +53,7 @@ pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>) {
     let spawner = Spawner::for_current_executor().await;
 
     spawner.must_spawn(task(stream, &context.handler));
+    spawner.must_spawn(listen_to_events(events));
 
     log::info!("done setting up usb keyboard");
 }
@@ -83,8 +85,26 @@ impl RequestHandler for Handler {
 type HidStream = HidReaderWriter<'static, Driver<'static, USB>, 256, 256>;
 
 #[embassy_executor::task]
+async fn listen_to_events(mut events: KbEvents) {
+    loop {
+        let event = events.recv().await;
+        report_event(event).await;
+    }
+}
+
+pub async fn report_event(event: Event) {
+    match event.kind {
+        EventKind::PressKey(key) => KB_REPORT.lock().await.press_key(key),
+        EventKind::ReleaseKey(key) => KB_REPORT.lock().await.release_key(key),
+        EventKind::PressModifier(modifier) => KB_REPORT.lock().await.press_modifier(modifier),
+        EventKind::ReleaseModifier(modifier) => KB_REPORT.lock().await.release_modifier(modifier),
+        EventKind::SetLayer(_) => {}
+    }
+}
+
+#[embassy_executor::task]
 async fn task(stream: HidStream, handler: &'static Handler) {
-    if let Err(e) = keyboard_test(stream, handler).await {
+    if let Err(e) = keyboard_report(stream, handler).await {
         log::error!("keyboard error: {e:?}");
     }
     //if let Err(e) = mouse_wiggler(stream).await {
@@ -92,7 +112,7 @@ async fn task(stream: HidStream, handler: &'static Handler) {
     //}
 }
 
-async fn keyboard_test(mut stream: HidStream, _handler: &'static Handler) -> Result<(), Error> {
+async fn keyboard_report(mut stream: HidStream, _handler: &'static Handler) -> Result<(), Error> {
     stream.ready().await;
     loop {
         Timer::after(Duration::from_millis(2)).await;

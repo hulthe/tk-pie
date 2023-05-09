@@ -11,15 +11,18 @@ use alloc::vec::Vec;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::{Level, Output, Pin};
 use embassy_time::{Duration, Timer};
+use log::error;
 use tangentbord1::board::Board;
-use tangentbord1::keyboard::KeyboardConfig;
+use tangentbord1::keyboard::{Half, KeyboardConfig};
 use tangentbord1::util::{stall, wheel};
 use tangentbord1::ws2812::{Rgb, Ws2812};
-use tangentbord1::{allocator, usb};
+use tangentbord1::{allocator, uart, usb};
 use tgnt::layer::Layer;
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
+    let half = Half::Right;
+
     allocator::init();
 
     let p = embassy_rp::init(Default::default());
@@ -32,8 +35,6 @@ async fn main(_spawner: Spawner) {
     let neopixels_d5 = Ws2812::new(board.PIO1, board.DMA_CH1, board.d5.degrade());
 
     neopixel.write(&[Rgb::new(0xFF, 0x00, 0x00)]).await;
-    usb::setup_logger_and_keyboard(board.USB).await;
-    neopixel.write(&[Rgb::new(0x00, 0x00, 0xFF)]).await;
 
     //Timer::after(Duration::from_millis(3000)).await;
 
@@ -44,6 +45,7 @@ async fn main(_spawner: Spawner) {
     };
 
     let keyboard = KeyboardConfig {
+        half,
         pins: [
             // TODO: reconfigure these for right PCB
             // row 1
@@ -74,7 +76,15 @@ async fn main(_spawner: Spawner) {
         layers,
     };
 
-    keyboard.create().await;
+    let Some([events1, events2]) = keyboard.create().await else {
+        error!("failed to create keyboard");
+        return;
+    };
+
+    uart::start(board.tx, board.rx, board.UART0, half, events2).await;
+
+    usb::setup_logger_and_keyboard(board.USB, events1).await;
+    neopixel.write(&[Rgb::new(0x00, 0x00, 0xFF)]).await;
 
     for w in 0usize.. {
         neopixel.write(&[wheel(w as u8)]).await;

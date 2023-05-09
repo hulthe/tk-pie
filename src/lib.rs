@@ -9,6 +9,7 @@ pub mod keyboard;
 pub mod lights;
 pub mod neopixel;
 pub mod panic_handler;
+pub mod uart;
 pub mod usb;
 pub mod util;
 pub mod ws2812;
