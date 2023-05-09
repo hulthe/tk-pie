@@ -268,11 +268,13 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
             }
             Button::NextLayer => {
                 let next_layer = (current_layer + 1) % layer_count;
+                state.lights.update(set_led(Rgb::new(100, 0, 100))).await;
                 events.publish_immediate(ev(SetLayer(next_layer)));
                 debug!("switched to layer {next_layer}");
             }
             Button::PrevLayer => {
                 let prev_layer = current_layer.checked_sub(1).unwrap_or(layer_count - 1);
+                state.lights.update(set_led(Rgb::new(100, 0, 100))).await;
                 events.publish_immediate(ev(SetLayer(prev_layer)));
                 debug!("switched to layer {prev_layer}");
             }
