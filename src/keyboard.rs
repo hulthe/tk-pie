@@ -1,3 +1,5 @@
+mod lights;
+
 use core::sync::atomic::{AtomicU16, Ordering};
 
 use alloc::{boxed::Box, vec::Vec};
@@ -17,11 +19,7 @@ use tgnt::{
     layer::Layer,
 };
 
-use crate::{
-    lights::Lights,
-    util::CS,
-    ws2812::{Rgb, Ws2812},
-};
+use crate::{lights::Lights, util::CS, ws2812::Ws2812};
 
 pub struct KeyboardConfig {
     /// Which board is this.
@@ -53,7 +51,12 @@ pub enum Half {
 
 #[derive(Clone, Debug)]
 pub struct Event {
+    /// The keyboard half that triggered the event.
     pub source: Half,
+
+    /// The index of the button that triggered the event.
+    pub source_button: usize,
+
     pub kind: EventKind,
 }
 
@@ -67,7 +70,7 @@ pub enum EventKind {
 }
 
 pub const KB_SUBSCRIBERS: usize = 2;
-pub const ACTUAL_KB_SUBSCRIBERS: usize = KB_SUBSCRIBERS + 1;
+pub const ACTUAL_KB_SUBSCRIBERS: usize = KB_SUBSCRIBERS + 2;
 const KB_EVENT_CAP: usize = 128;
 static KB_EVENTS: PubSubChannel<CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0> =
     PubSubChannel::new();
@@ -125,6 +128,14 @@ impl KeyboardConfig {
         }
 
         spawner.must_spawn(layer_switch_task(
+            KbEvents {
+                publisher: KB_EVENTS.immediate_publisher(),
+                subscriber: KB_EVENTS.subscriber().unwrap(),
+            },
+            state,
+        ));
+
+        spawner.must_spawn(lights::task(
             KbEvents {
                 publisher: KB_EVENTS.immediate_publisher(),
                 subscriber: KB_EVENTS.subscriber().unwrap(),
@@ -212,17 +223,9 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
             debug!("switch {switch_num} button {button:?} released");
         };
 
-        let set_led = |color: Rgb| {
-            let led_num = state.led_map.get(switch_num).copied();
-            move |leds: &mut [Rgb; SWITCH_COUNT]| {
-                if let Some(led) = led_num.and_then(|i| leds.get_mut(i)) {
-                    *led = color;
-                }
-            }
-        };
-
         let ev = |kind| Event {
             source: state.half,
+            source_button: switch_num,
             kind,
         };
 
@@ -230,51 +233,40 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
         match button {
             &Button::Key(key) => {
                 events.publish_immediate(ev(PressKey(key)));
-                state.lights.update(set_led(Rgb::new(0, 150, 0))).await;
                 wait_for_release.await;
                 events.publish_immediate(ev(ReleaseKey(key)));
-                state.lights.update(set_led(Rgb::new(0, 0, 0))).await;
                 continue;
             }
             &Button::Mod(modifier) => {
                 events.publish_immediate(ev(PressModifier(modifier)));
-                state.lights.update(set_led(Rgb::new(100, 100, 0))).await;
                 wait_for_release.await;
                 events.publish_immediate(ev(ReleaseModifier(modifier)));
-                state.lights.update(set_led(Rgb::new(0, 0, 0))).await;
                 continue;
             }
             &Button::ModTap(key, modifier) => {
-                state.lights.update(set_led(Rgb::new(100, 100, 0))).await;
                 select_biased! {
                     _ = Timer::after(MOD_TAP_TIME).fuse() => {
                         events.publish_immediate(ev(PressModifier(modifier)));
-                        state.lights.update(set_led(Rgb::new(0, 0, 150))).await;
                         pin.wait_for_high().await;
                         events.publish_immediate(ev(ReleaseModifier(modifier)));
-                        state.lights.update(set_led(Rgb::new(0, 0, 0))).await;
                         debug!("switch {switch_num} button {button:?} released");
                         continue;
                     }
                     _ = wait_for_release.fuse() => {
                         events.publish_immediate(ev(PressKey(key)));
-                        state.lights.update(set_led(Rgb::new(0, 150, 0))).await;
                         Timer::after(Duration::from_millis(10)).await;
                         events.publish_immediate(ev(ReleaseKey(key)));
-                        state.lights.update(set_led(Rgb::new(0, 0, 0))).await;
                         continue;
                     }
                 }
             }
             Button::NextLayer => {
                 let next_layer = (current_layer + 1) % layer_count;
-                state.lights.update(set_led(Rgb::new(100, 0, 100))).await;
                 events.publish_immediate(ev(SetLayer(next_layer)));
                 debug!("switched to layer {next_layer}");
             }
             Button::PrevLayer => {
                 let prev_layer = current_layer.checked_sub(1).unwrap_or(layer_count - 1);
-                state.lights.update(set_led(Rgb::new(100, 0, 100))).await;
                 events.publish_immediate(ev(SetLayer(prev_layer)));
                 debug!("switched to layer {prev_layer}");
             }
@@ -282,7 +274,6 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
         }
 
         wait_for_release.await;
-        state.lights.update(set_led(Rgb::new(0, 0, 0))).await;
     }
 }
 
