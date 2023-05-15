@@ -31,18 +31,48 @@
 	Layer(
 		buttons: [
 			// Row 1
-			Key(D6),
+			None,
 			Key(D7),
 			Key(D8),
 			Key(D9),
-			Key(D0),
+			Key(PrintScreen),
 
 			// Row 2
-			Key(Apostrophe),
-			ModTap(Slash, RCtrl),
-			ModTap(Equal, RShift),
-			ModTap(Accent, RAlt),
-			ModTap(Pound, RMod),
+			Key(D0),
+			ModTap(D4, RCtrl),
+			ModTap(D5, RShift),
+			ModTap(D6, RAlt),
+			//ModTap(, RMod),
+			Mod(RMod),
+
+			// Row 3
+			None,
+			Key(D1),
+			Key(D2),
+			Key(D3),
+			None,
+
+			// Thumbpad
+			PrevLayer,
+			Key(Return),
+			Key(Delete),
+		],
+	),
+	Layer(
+		buttons: [
+			// Row 1
+			None,
+			None,
+			None,
+			None,
+			None,
+
+			// Row 2
+			None,
+			Mod(RCtrl),
+			Mod(RShift),
+			Mod(RAlt),
+			Mod(RMod),
 
 			// Row 3
 			None,

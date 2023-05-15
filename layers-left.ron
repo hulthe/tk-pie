@@ -2,7 +2,7 @@
 	Layer(
 		buttons: [
 			// Row 1
-			Key(Apostrophe),
+			Key(Escape),
 			Key(Comma),
 			Key(Period),
 			Key(P),
@@ -31,11 +31,11 @@
 	Layer(
 		buttons: [
 			// Row 1
-			Key(D1),
-			Key(D2),
-			Key(D3),
-			Key(D4),
-			Key(D5),
+			Key(Apostrophe),
+			Key(Slash),
+			Key(Equal),
+			Key(Accent),
+			Key(Period),
 
 			// Row 2
 			ModTap(BackslashPipe, LMod),
@@ -43,6 +43,35 @@
 			ModTap(LBracket, LShift),
 			ModTap(RBracket, LCtrl),
 			Key(Tab),
+
+			// Row 3
+			None,
+			Key(Mute),
+			Key(VolumeDown),
+			Key(VolumeUp),
+			None,
+
+			// Thumbpad
+			Key(Backspace),
+			Key(Space),
+			NextLayer,
+		],
+	),
+	Layer(
+		buttons: [
+			// Row 1
+			None,
+			Key(Mute),
+			Key(VolumeDown),
+			Key(VolumeUp),
+			None,
+
+			// Row 2
+			Mod(LMod),
+			Mod(LAlt),
+			Mod(LShift),
+			Mod(LCtrl),
+			None,
 
 			// Row 3
 			None,
