@@ -70,7 +70,7 @@ pub enum EventKind {
 }
 
 pub const KB_SUBSCRIBERS: usize = 2;
-pub const ACTUAL_KB_SUBSCRIBERS: usize = KB_SUBSCRIBERS + 2;
+const ACTUAL_KB_SUBSCRIBERS: usize = KB_SUBSCRIBERS + 2;
 const KB_EVENT_CAP: usize = 128;
 static KB_EVENTS: PubSubChannel<CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0> =
     PubSubChannel::new();
@@ -254,7 +254,7 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
                     }
                     _ = wait_for_release.fuse() => {
                         events.publish_immediate(ev(PressKey(key)));
-                        Timer::after(Duration::from_millis(10)).await;
+                        Timer::after(Duration::from_millis(20)).await;
                         events.publish_immediate(ev(ReleaseKey(key)));
                         continue;
                     }

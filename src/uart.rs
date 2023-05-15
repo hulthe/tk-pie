@@ -61,10 +61,10 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
             };
 
             let message: Message = unsafe { transmute(buf) }; // crimes :)
-            info!("got msg: {:?}", message);
-            match message {
-                Message::KeyboardEvent(event) => events_tx.send(event),
+            match &message {
+                Message::KeyboardEvent(event) => events_tx.send(event.clone()),
             }
+            info!("got msg: {:?}", message);
         }
     };
 
