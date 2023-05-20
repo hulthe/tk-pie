@@ -31,7 +31,7 @@
 	Layer(
 		buttons: [
 			// Row 1
-			Key(Apostrophe),
+			Key(Escape),
 			Key(Slash),
 			Key(Equal),
 			Key(Accent),
@@ -46,9 +46,9 @@
 
 			// Row 3
 			None,
-			Key(Mute),
-			Key(VolumeDown),
-			Key(VolumeUp),
+			None,
+			None,
+			Key(Apostrophe),
 			None,
 
 			// Thumbpad
@@ -60,7 +60,7 @@
 	Layer(
 		buttons: [
 			// Row 1
-			None,
+			Key(Escape),
 			Key(Mute),
 			Key(VolumeDown),
 			Key(VolumeUp),

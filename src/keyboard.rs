@@ -6,7 +6,7 @@ use alloc::{boxed::Box, vec::Vec};
 use embassy_executor::Spawner;
 use embassy_rp::{
     gpio::{AnyPin, Input, Pin, Pull},
-    pio::PioInstanceBase,
+    peripherals::PIO1,
 };
 use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
 use embassy_time::{Duration, Timer};
@@ -28,7 +28,7 @@ pub struct KeyboardConfig {
     pub pins: [AnyPin; SWITCH_COUNT],
     /// Array of LED indices of each switch
     pub led_map: [usize; SWITCH_COUNT],
-    pub led_driver: Ws2812<PioInstanceBase<1>>,
+    pub led_driver: Ws2812<PIO1>,
     pub layers: Vec<Layer>,
 }
 
@@ -39,7 +39,7 @@ struct State {
     layers: &'static [Layer],
     /// Array of LED indices of each switch
     led_map: [usize; SWITCH_COUNT],
-    lights: Lights<PioInstanceBase<1>, SWITCH_COUNT>,
+    lights: Lights<PIO1, SWITCH_COUNT>,
 }
 
 /// A keyboard half.

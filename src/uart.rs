@@ -1,7 +1,6 @@
 use core::mem::{size_of, transmute};
 
 use embassy_executor::Spawner;
-use embassy_rp::interrupt;
 use embassy_rp::peripherals::{PIN_0, PIN_1, UART0};
 use embassy_rp::uart::{self, BufferedUart, DataBits, Parity, StopBits};
 use embassy_time::{with_timeout, Duration, TimeoutError};
@@ -11,6 +10,7 @@ use log::{error, info};
 use static_cell::StaticCell;
 
 use crate::keyboard::{self, Half, KbEvents};
+use crate::Irqs;
 
 #[derive(Clone, Debug)]
 enum Message {
@@ -29,7 +29,7 @@ pub async fn start(tx: PIN_0, rx: PIN_1, uart: UART0, board: Half, events: KbEve
 
     let uart = embassy_rp::uart::BufferedUart::new(
         uart,
-        interrupt::take!(UART0_IRQ),
+        Irqs,
         tx,
         rx,
         TX_BUF.init_with(|| [0u8; 1024]),

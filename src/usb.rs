@@ -1,9 +1,9 @@
 use embassy_executor::Spawner;
-use embassy_rp::{interrupt, peripherals::USB, usb::Driver};
+use embassy_rp::{peripherals::USB, usb::Driver};
 use embassy_usb::{Builder, Config, UsbDevice};
 use static_cell::StaticCell;
 
-use crate::keyboard::KbEvents;
+use crate::{keyboard::KbEvents, Irqs};
 
 pub mod keyboard;
 pub mod logger;
@@ -59,7 +59,7 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
     config.device_protocol = 0x01;
     config.composite_with_iads = true;
 
-    let driver = Driver::new(usb, interrupt::take!(USBCTRL_IRQ));
+    let driver = Driver::new(usb, Irqs);
 
     Builder::new(
         driver,

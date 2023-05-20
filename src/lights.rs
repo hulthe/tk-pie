@@ -1,19 +1,19 @@
 use crate::ws2812::Ws2812;
-use embassy_rp::pio::PioInstance;
+use embassy_rp::pio;
 use embassy_sync::mutex::Mutex;
 
 use crate::{util::CS, ws2812::Rgb};
 
-pub struct Lights<P: PioInstance, const N: usize> {
+pub struct Lights<P: pio::Instance + 'static, const N: usize> {
     state: Mutex<CS, State<P, N>>,
 }
 
-struct State<P: PioInstance, const N: usize> {
+struct State<P: pio::Instance + 'static, const N: usize> {
     colors: [Rgb; N],
     driver: Ws2812<P>,
 }
 
-impl<P: PioInstance, const N: usize> Lights<P, N> {
+impl<P: pio::Instance, const N: usize> Lights<P, N> {
     pub const fn new(driver: Ws2812<P>) -> Self {
         Lights {
             state: Mutex::new(State {
