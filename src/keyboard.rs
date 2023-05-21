@@ -12,6 +12,7 @@ use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
 use embassy_time::{Duration, Timer};
 use futures::{select_biased, FutureExt};
 use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 use static_cell::StaticCell;
 use tgnt::{
     button::{Button, Modifier},
@@ -43,13 +44,13 @@ struct State {
 }
 
 /// A keyboard half.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Half {
     Left,
     Right,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Event {
     /// The keyboard half that triggered the event.
     pub source: Half,
@@ -60,7 +61,7 @@ pub struct Event {
     pub kind: EventKind,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum EventKind {
     PressKey(Key),
     ReleaseKey(Key),
