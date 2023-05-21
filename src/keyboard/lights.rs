@@ -1,6 +1,6 @@
 use core::cmp::min;
 
-use embassy_time::{Duration, Timer};
+use embassy_time::{Duration, Instant, Timer};
 use futures::{select_biased, FutureExt};
 
 use crate::{util::wheel, ws2812::Rgb};
@@ -19,24 +19,85 @@ const IDLE_BRIGHTNESS_RAMPUP: Duration = Duration::from_secs(120);
 const MAX_IDLE_BRIGHTESS: f32 = 1.0;
 const MIN_IDLE_BRIGHTESS: f32 = 0.05;
 
+#[derive(Clone, Copy)]
+enum LightState {
+    Solid(Rgb),
+    SolidThenFade {
+        color: Rgb,
+        solid_until: Instant,
+        fade_by: f32,
+    },
+    FadeBy(f32),
+    None,
+}
+
 #[embassy_executor::task]
 pub(super) async fn task(mut events: KbEvents, state: &'static State) {
+    let mut lights: [LightState; SWITCH_COUNT] = [LightState::None; SWITCH_COUNT];
+    let mut next_frame = Instant::now();
+    let mut idle_at = Instant::now() + UNTIL_IDLE;
     loop {
         select_biased! {
-            event = events.recv().fuse() => handle_event(event, state).await,
-            _ = Timer::after(UNTIL_IDLE).fuse() => {
+            event = events.recv().fuse() => {
+                handle_event(event, state, &mut lights).await;
+                idle_at = Instant::now() + UNTIL_IDLE;
+            }
+            _ = Timer::at(next_frame).fuse() => {
+                tick(state, &mut lights).await;
+                next_frame = Instant::now() + Duration::from_millis(16);
+            }
+            _ = Timer::at(idle_at).fuse() => {
                 select_biased! {
                     event = events.recv().fuse() => {
                         state.lights.update(|lights| {
                             lights.iter_mut().for_each(|rgb| *rgb = Rgb::new(0, 0, 0));
                         }).await;
-                        handle_event(event, state).await;
+                        handle_event(event, state, &mut lights).await;
+                        idle_at = Instant::now() + UNTIL_IDLE;
                     }
                     _ = idle_animation(state).fuse() => {}
                 }
             }
         }
     }
+}
+
+async fn tick(state: &'static State, lights: &mut [LightState; SWITCH_COUNT]) {
+    let now = Instant::now();
+
+    state
+        .lights
+        .update(|rgbs| {
+            for (button, light) in lights.iter_mut().enumerate() {
+                let Some(&led_id) = state.led_map.get(button) else { continue; };
+                let Some(rgb) = rgbs.get_mut(led_id) else { continue; };
+
+                match &*light {
+                    LightState::None => {}
+                    LightState::FadeBy(fade) => {
+                        let [r, g, b] = rgb
+                            .components()
+                            .map(|c| ((c as f32) * fade.clamp(0.0, 1.0)) as u8);
+                        *rgb = Rgb::new(r, g, b);
+                        if *rgb == Rgb::new(0, 0, 0) {
+                            *light = LightState::None;
+                        }
+                    }
+                    &LightState::Solid(color) => *rgb = color,
+                    &LightState::SolidThenFade {
+                        color,
+                        solid_until,
+                        fade_by,
+                    } => {
+                        *rgb = color;
+                        if now >= solid_until {
+                            *light = LightState::FadeBy(fade_by);
+                        }
+                    }
+                }
+            }
+        })
+        .await;
 }
 
 async fn idle_animation(state: &'static State) {
@@ -56,7 +117,7 @@ async fn idle_animation(state: &'static State) {
 
                 for (n, &i) in state.led_map.iter().enumerate() {
                     let Some(light) = lights.get_mut(i) else { continue };
-                    let (r, g, b) = wheel(
+                    let [r, g, b] = wheel(
                         (n as u64 * IDLE_ANIMATION_KEY_OFFSET + tick * IDLE_ANIMATION_SPEED) as u8,
                     )
                     .components();
@@ -74,35 +135,32 @@ async fn idle_animation(state: &'static State) {
     }
 }
 
-async fn handle_event(event: Event, state: &'static State) {
-    let set_button_led = |color: Rgb| {
-        let led_num = state.led_map.get(event.source_button).copied();
-        move |leds: &mut [Rgb; SWITCH_COUNT]| {
-            if event.source != state.half {
-                return;
-            }
-
-            if let Some(led) = led_num.and_then(|i| leds.get_mut(i)) {
-                *led = color;
-            }
-        }
-    };
-
+async fn handle_event(
+    event: Event,
+    state: &'static State,
+    lights: &mut [LightState; SWITCH_COUNT],
+) {
     match event.kind {
         EventKind::PressKey(_) => {
-            state
-                .lights
-                .update(set_button_led(Rgb::new(0, 150, 0)))
-                .await;
+            if state.half != event.source {
+                return;
+            }
+            let Some(light) = lights.get_mut(event.source_button) else { return; };
+            *light = LightState::Solid(Rgb::new(0, 150, 0));
         }
         EventKind::PressModifier(_) => {
-            state
-                .lights
-                .update(set_button_led(Rgb::new(0, 0, 150)))
-                .await;
+            if state.half != event.source {
+                return;
+            }
+            let Some(light) = lights.get_mut(event.source_button) else { return; };
+            *light = LightState::Solid(Rgb::new(0, 0, 150));
         }
         EventKind::ReleaseKey(_) | EventKind::ReleaseModifier(_) => {
-            state.lights.update(set_button_led(Rgb::new(0, 0, 0))).await;
+            if state.half != event.source {
+                return;
+            }
+            let Some(light) = lights.get_mut(event.source_button) else { return; };
+            *light = LightState::FadeBy(0.85);
         }
         EventKind::SetLayer(layer) => {
             let layer = min(layer, state.layers.len().saturating_sub(1) as u16);
@@ -124,29 +182,15 @@ async fn handle_event(event: Event, state: &'static State) {
                 }
             };
 
-            state
-                .lights
-                .update(|leds| {
-                    for &button in buttons_to_light_up {
-                        let Some(&led_id) = state.led_map.get(button) else { continue; };
-                        let Some(rgb) = leds.get_mut(led_id) else { continue; };
-                        *rgb = Rgb::new(100, 0, 100);
-                    }
-                })
-                .await;
-
-            Timer::after(Duration::from_millis(200)).await;
-
-            state
-                .lights
-                .update(|leds| {
-                    for &button in buttons_to_light_up {
-                        let Some(&led_id) = state.led_map.get(button) else { continue; };
-                        let Some(rgb) = leds.get_mut(led_id) else { continue; };
-                        *rgb = Rgb::new(0, 0, 0);
-                    }
-                })
-                .await;
+            let solid_until = Instant::now() + Duration::from_millis(200);
+            for &button in buttons_to_light_up {
+                let Some(light) = lights.get_mut(button) else { continue; };
+                *light = LightState::SolidThenFade {
+                    color: Rgb::new(120, 0, 120),
+                    solid_until,
+                    fade_by: 0.85,
+                }
+            }
         }
     }
 }

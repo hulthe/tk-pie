@@ -106,7 +106,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
 
     let tx_task = async {
         let mut buf = [0u8; 256 + HEADER_LEN];
-        let mut counter = 1;
+        let mut counter = 1u8;
         loop {
             // forward messages to the other keyboard half
             let event = events_rx.recv().await;
@@ -126,7 +126,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
 
             // add a "random" value to feed the crc
             let random = counter;
-            counter += 1;
+            counter = counter.wrapping_add(1);
 
             let len = serialized.len() as u8;
 

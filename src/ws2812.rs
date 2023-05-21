@@ -105,9 +105,9 @@ impl Rgb {
 
     /// Get the red, green, and blue components of this Rgb.
     #[inline(always)]
-    pub const fn components(&self) -> (u8, u8, u8) {
+    pub const fn components(&self) -> [u8; 3] {
         let [g, r, b, _] = self.0.to_be_bytes();
-        (r, g, b)
+        [r, g, b]
     }
 
     #[inline(always)]
@@ -119,7 +119,7 @@ impl Rgb {
 
 impl Debug for Rgb {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (r, g, b) = self.components();
+        let [r, g, b] = self.components();
         f.debug_tuple("Rgb").field(&r).field(&g).field(&b).finish()
     }
 }
@@ -128,7 +128,7 @@ impl Div<u8> for Rgb {
     type Output = Rgb;
 
     fn div(self, d: u8) -> Self::Output {
-        let (r, g, b) = self.components();
+        let [r, g, b] = self.components();
         Rgb::new(r / d, g / d, b / d)
     }
 }
