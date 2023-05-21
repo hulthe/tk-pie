@@ -1127,6 +1127,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rtt-target"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3afa12c77ba1b9bf560e4039a9b9a08bb9cde0e9e6923955eeb917dd8d5cf303"
+dependencies = [
+ "critical-section",
+ "ufmt-write",
+]
+
+[[package]]
 name = "rustc_version"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1320,8 +1330,10 @@ dependencies = [
 name = "tangentbord1"
 version = "0.1.0"
 dependencies = [
+ "atomic-polyfill 1.0.2",
  "cortex-m",
  "cortex-m-rt",
+ "critical-section",
  "embassy-executor",
  "embassy-futures",
  "embassy-rp",
@@ -1335,11 +1347,14 @@ dependencies = [
  "embedded-io",
  "fixed",
  "futures",
+ "heapless",
  "log",
+ "once_cell",
  "pio",
  "pio-proc",
  "postcard",
  "ron",
+ "rtt-target",
  "smart-leds",
  "static_cell",
  "tgnt",
@@ -1409,6 +1424,12 @@ name = "typenum"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "497961ef93d974e23eb6f433eb5fe1b7930b659f06d12dec6fc44a8f554c0bba"
+
+[[package]]
+name = "ufmt-write"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e87a2ed6b42ec5e28cc3b94c09982969e9227600b2e3dcbc1db927a84c06bd69"
 
 [[package]]
 name = "unicode-ident"

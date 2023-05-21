@@ -21,16 +21,13 @@ static STATE: StaticCell<State> = StaticCell::new();
 
 pub async fn setup_logger_and_keyboard(usb: USB, events: KbEvents) {
     let mut builder = builder(usb);
-    logger::setup(&mut builder).await;
-
-    log::error!("log_level: error");
-    log::warn!("log_level: warn");
-    log::info!("log_level: info");
-    log::debug!("log_level: debug");
-    log::trace!("log_level: trace");
+    //logger::setup(&mut builder).await;
 
     keyboard::setup(&mut builder, events).await;
+
+    log::info!("building usb device");
     let usb = builder.build();
+    log::info!("spawning usb task");
     Spawner::for_current_executor().await.must_spawn(run(usb));
 }
 
@@ -73,5 +70,6 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
 
 #[embassy_executor::task]
 pub async fn run(mut device: UsbDevice<'static, Driver<'static, USB>>) {
+    log::info!("running usb device");
     device.run().await
 }
