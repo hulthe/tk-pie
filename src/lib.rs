@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(type_alias_impl_trait)]
+#![feature(split_array)]
 
 use embassy_rp::{
     bind_interrupts,

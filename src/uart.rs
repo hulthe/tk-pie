@@ -1,3 +1,6 @@
+use core::mem::size_of;
+
+use bytemuck::{cast, AnyBitPattern, NoUninit};
 use crc_any::CRCu16;
 use embassy_executor::Spawner;
 use embassy_rp::peripherals::{PIN_0, PIN_1, UART0};
@@ -46,26 +49,41 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
     let (mut rx, mut tx) = uart.split();
     let (mut events_rx, mut events_tx) = events.split();
 
-    const HEADER_LEN: usize = 4;
+    #[repr(C)]
+    #[derive(Clone, Copy, Debug, NoUninit, AnyBitPattern)]
+    struct Header {
+        /// The length of the payload.
+        len: u8,
+
+        /// An arbitrary value to feed the crc, should be different for each message.
+        random: u8,
+
+        /// A little-endian crc16.
+        crc: [u8; 2],
+    }
+
+    const HEADER_LEN: usize = size_of::<Header>();
 
     let rx_task = async {
         let mut buf: heapless::Vec<u8, 1024> = Vec::new();
         loop {
-            if let &[len, random, crc1, crc2, ref rest @ ..] = buf.as_slice() {
-                let crc = u16::from_le_bytes([crc1, crc2]);
+            if buf.len() >= HEADER_LEN {
+                let (&header, rest) = buf.split_array_ref::<HEADER_LEN>();
+                let header: Header = cast(header);
+                let crc = u16::from_le_bytes(header.crc);
                 let mut calculated_crc = CRCu16::crc16();
-                calculated_crc.digest(&[len, random]);
+                calculated_crc.digest(&[header.len, header.random]);
                 let calculated_crc = calculated_crc.get_crc();
 
                 if calculated_crc != crc {
-                    log::error!("invalid uart package crc: {:x?}", &buf[..HEADER_LEN]);
+                    log::error!("invalid uart header crc: {header:x?}");
                     buf.remove(0); // pop the first byte and hope we find a good packet header
                     continue;
                 }
 
-                log::debug!("got uart header {:x?}", &buf[..HEADER_LEN]);
+                log::debug!("got uart header {header:x?}");
 
-                let len = usize::from(len);
+                let len = usize::from(header.len);
                 if rest.len() >= len {
                     let r = postcard::from_bytes(&rest[..len]);
 
@@ -106,7 +124,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
 
     let tx_task = async {
         let mut buf = [0u8; 256 + HEADER_LEN];
-        let mut counter = 1u8;
+        let mut counter = 0u8;
         loop {
             // forward messages to the other keyboard half
             let event = events_rx.recv().await;
@@ -115,7 +133,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
             }
 
             let message = Message::KeyboardEvent(event);
-            let (header, body) = buf.split_at_mut(HEADER_LEN);
+            let (buf_header, body) = buf.split_array_mut();
             let serialized = match postcard::to_slice(&message, body) {
                 Ok(s) => s,
                 Err(e) => {
@@ -125,16 +143,20 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
             };
 
             // add a "random" value to feed the crc
-            let random = counter;
             counter = counter.wrapping_add(1);
+            let random = counter;
 
             let len = serialized.len() as u8;
 
             let mut crc = CRCu16::crc16();
             crc.digest(&[len, random]);
-            let [crc1, crc2] = crc.get_crc().to_le_bytes();
-
-            header.copy_from_slice(&[len, random, crc1, crc2]);
+            let header = Header {
+                len: serialized.len() as u8,
+                random,
+                crc: crc.get_crc().to_le_bytes(),
+            };
+            let header: [u8; HEADER_LEN] = cast(header);
+            *buf_header = header;
 
             let package = &buf[..HEADER_LEN + usize::from(len)];
             tx.write_all(package).await.ok();

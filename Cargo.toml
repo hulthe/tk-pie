@@ -37,6 +37,7 @@ atomic-polyfill = "1.0.2"
 critical-section = "1.1.1"
 crc-any = "2.4.3"
 serde = { version = "1.0.163", default-features = false, features = ["derive"] }
+bytemuck = { version = "1.13.1", features = ["derive"] }
 
 #[patch."https://git.nubo.sh/hulthe/tgnt.git"]
 #tgnt = { path = "../tgnt" }
