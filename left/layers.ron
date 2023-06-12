@@ -25,7 +25,7 @@
 			// Thumbpad
 			Key(Backspace),
 			Key(Space),
-			NextLayer,
+			HoldLayer(1),
 		],
 	),
 	Layer(
@@ -54,7 +54,7 @@
 			// Thumbpad
 			Key(Backspace),
 			Key(Space),
-			NextLayer,
+			HoldLayer(1),
 		],
 	),
 	Layer(
@@ -83,7 +83,7 @@
 			// Thumbpad
 			Key(Backspace),
 			Key(Space),
-			NextLayer,
+			HoldLayer(1),
 		],
 	),
 ]

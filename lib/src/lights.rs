@@ -2,7 +2,7 @@ use crate::ws2812::Ws2812;
 use embassy_rp::pio;
 use embassy_sync::mutex::Mutex;
 
-use crate::{util::CS, ws2812::Rgb};
+use crate::{rgb::Rgb, util::CS};
 
 pub struct Lights<P: pio::Instance + 'static, const N: usize> {
     state: Mutex<CS, State<P, N>>,

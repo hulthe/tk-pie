@@ -9,18 +9,20 @@ use embassy_rp::{
     peripherals::PIO1,
 };
 use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
-use embassy_time::{Duration, Timer};
-use futures::{select_biased, FutureExt};
+use embassy_time::{Duration, Instant};
 use log::{debug, error, info, warn};
-use serde::{Deserialize, Serialize};
 use static_cell::StaticCell;
-use tgnt::{
-    button::{Button, Modifier},
-    keys::Key,
-    layer::Layer,
-};
+use tgnt::{button::Button, layer::Layer};
 
-use crate::{lights::Lights, util::CS, ws2812::Ws2812};
+use crate::{
+    event::{
+        switch::{Event, EventKind},
+        Half,
+    },
+    lights::Lights,
+    util::CS,
+    ws2812::Ws2812,
+};
 
 pub struct KeyboardConfig {
     /// Which board is this.
@@ -43,41 +45,14 @@ struct State {
     lights: Lights<PIO1, SWITCH_COUNT>,
 }
 
-/// A keyboard half.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Half {
-    Left,
-    Right,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Event {
-    /// The keyboard half that triggered the event.
-    pub source: Half,
-
-    /// The index of the button that triggered the event.
-    pub source_button: usize,
-
-    pub kind: EventKind,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum EventKind {
-    PressKey(Key),
-    ReleaseKey(Key),
-    PressModifier(Modifier),
-    ReleaseModifier(Modifier),
-    SetLayer(u16),
-}
-
 pub const KB_SUBSCRIBERS: usize = 2;
 const ACTUAL_KB_SUBSCRIBERS: usize = KB_SUBSCRIBERS + 2;
 const KB_EVENT_CAP: usize = 128;
 static KB_EVENTS: PubSubChannel<CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0> =
     PubSubChannel::new();
 pub struct KbEvents {
-    subscriber: Subscriber<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
-    publisher: ImmediatePublisher<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
+    pub subscriber: Subscriber<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
+    pub publisher: ImmediatePublisher<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
 }
 
 pub struct KbEventsTx<'a> {
@@ -183,8 +158,8 @@ impl KbEventsTx<'_> {
     }
 }
 
-const MOD_TAP_TIME: Duration = Duration::from_millis(150);
-const SWITCH_COUNT: usize = 18;
+pub const MOD_TAP_TIME: Duration = Duration::from_millis(150);
+pub const SWITCH_COUNT: usize = 18;
 
 /// Task for monitoring a single switch pin, and handling button presses.
 #[embassy_executor::task(pool_size = 18)]
@@ -195,6 +170,7 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
     loop {
         // pins are pull-up, so when the switch is pressed they are brought low.
         pin.wait_for_low().await;
+        let pressed_at = Instant::now();
 
         // TODO: do we need debouncing?
 
@@ -219,72 +195,54 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
 
         debug!("switch {switch_num} button {button:?} pressed");
 
-        let wait_for_release = async {
-            pin.wait_for_high().await;
-            debug!("switch {switch_num} button {button:?} released");
-        };
-
         let ev = |kind| Event {
             source: state.half,
             source_button: switch_num,
             kind,
         };
 
-        use EventKind::*;
-        match button {
-            &Button::Key(key) => {
-                events.publish_immediate(ev(PressKey(key)));
-                wait_for_release.await;
-                events.publish_immediate(ev(ReleaseKey(key)));
-                continue;
-            }
-            &Button::Mod(modifier) => {
-                events.publish_immediate(ev(PressModifier(modifier)));
-                wait_for_release.await;
-                events.publish_immediate(ev(ReleaseModifier(modifier)));
-                continue;
-            }
-            &Button::ModTap(key, modifier) => {
-                select_biased! {
-                    _ = Timer::after(MOD_TAP_TIME).fuse() => {
-                        events.publish_immediate(ev(PressModifier(modifier)));
-                        pin.wait_for_high().await;
-                        events.publish_immediate(ev(ReleaseModifier(modifier)));
-                        debug!("switch {switch_num} button {button:?} released");
-                        continue;
-                    }
-                    _ = wait_for_release.fuse() => {
-                        events.publish_immediate(ev(PressKey(key)));
-                        Timer::after(Duration::from_millis(20)).await;
-                        events.publish_immediate(ev(ReleaseKey(key)));
-                        continue;
-                    }
-                }
-            }
-            Button::NextLayer => {
-                let next_layer = (current_layer + 1) % layer_count;
-                events.publish_immediate(ev(SetLayer(next_layer)));
-                debug!("switched to layer {next_layer}");
-            }
-            Button::PrevLayer => {
-                let prev_layer = current_layer.checked_sub(1).unwrap_or(layer_count - 1);
-                events.publish_immediate(ev(SetLayer(prev_layer)));
-                debug!("switched to layer {prev_layer}");
-            }
-            Button::None => {}
-        }
+        events.publish_immediate(ev(EventKind::Press {
+            button: button.clone(),
+        }));
 
-        wait_for_release.await;
+        pin.wait_for_high().await;
+        let released_after = pressed_at.elapsed();
+
+        debug!("switch {switch_num} button {button:?} released");
+
+        events.publish_immediate(ev(EventKind::Release {
+            button: button.clone(),
+            after: released_after.into(),
+        }));
     }
 }
 
 #[embassy_executor::task]
 async fn layer_switch_task(mut events: KbEvents, state: &'static State) {
+    let layer_count = state.layers.len() as u16;
+    let Some(last_layer) = layer_count.checked_sub(1) else {
+        error!("no layers specified");
+        return;
+    };
+
     loop {
         let event = events.recv().await;
-        if let EventKind::SetLayer(new_layer) = event.kind {
-            state.current_layer.store(new_layer, Ordering::Relaxed);
-        }
+        let layer = state.current_layer.load(Ordering::Relaxed);
+        let new_layer = match event.kind {
+            EventKind::Press { button } => match button {
+                Button::NextLayer => layer.wrapping_add(1) % layer_count,
+                Button::PrevLayer => layer.checked_sub(1).unwrap_or(last_layer),
+                Button::HoldLayer(l) => layer.wrapping_add(l) % layer_count,
+                _ => continue,
+            },
+            EventKind::Release { button, .. } => match button {
+                Button::HoldLayer(l) => layer.checked_sub(l).unwrap_or(last_layer),
+                _ => continue,
+            },
+        };
+
+        state.current_layer.store(new_layer, Ordering::Relaxed);
+        debug!("switched to layer {new_layer}");
     }
 }
 

@@ -1,8 +1,13 @@
 pub mod report;
 
 use embassy_executor::Spawner;
+use embassy_futures::select::select;
 use embassy_rp::{peripherals::USB, usb::Driver};
-use embassy_sync::mutex::Mutex;
+use embassy_sync::{
+    blocking_mutex::raw::NoopRawMutex,
+    mutex::Mutex,
+    pubsub::{PubSubChannel, WaitResult},
+};
 use embassy_time::{Duration, Timer};
 use embassy_usb::{
     class::hid::{self, HidReaderWriter, ReadError, ReportId, RequestHandler},
@@ -10,13 +15,15 @@ use embassy_usb::{
     Builder,
 };
 use embassy_usb_driver::EndpointError;
+use log::error;
 use static_cell::StaticCell;
-use usbd_hid::descriptor::{MouseReport, SerializedDescriptor};
+use usbd_hid::descriptor::SerializedDescriptor;
 
 use crate::{
-    keyboard::{Event, EventKind, KbEvents},
+    event::button,
+    keyboard::KbEvents,
     usb::keyboard::report::{KeyboardReport, EMPTY_KEYBOARD_REPORT},
-    util::CS,
+    util::CS, keypress_handler::keypress_handler,
 };
 
 use super::MAX_PACKET_SIZE;
@@ -25,7 +32,18 @@ struct Handler;
 
 static CONTEXT: StaticCell<Context> = StaticCell::new();
 
-pub static KB_REPORT: Mutex<CS, KeyboardReport> = Mutex::new(EMPTY_KEYBOARD_REPORT);
+static KB_REPORT: Mutex<CS, Reports> = Mutex::new(Reports {
+    actual: EMPTY_KEYBOARD_REPORT,
+    unsent: EMPTY_KEYBOARD_REPORT,
+});
+
+struct Reports {
+    /// The report to be sent to the host machine.
+    actual: KeyboardReport,
+
+    /// Key presses which hasn't been sent yet.
+    unsent: KeyboardReport,
+}
 
 struct Context {
     handler: Handler,
@@ -86,20 +104,53 @@ type HidStream = HidReaderWriter<'static, Driver<'static, USB>, 256, 256>;
 
 #[embassy_executor::task]
 async fn listen_to_events(mut events: KbEvents) {
-    loop {
-        let event = events.recv().await;
-        report_event(event).await;
-    }
-}
+    let button_events = PubSubChannel::<NoopRawMutex, button::Event, 10, 1, 1>::new();
+    let mut button_pub = button_events.publisher().unwrap();
+    let mut button_sub = button_events.subscriber().unwrap();
 
-pub async fn report_event(event: Event) {
-    match event.kind {
-        EventKind::PressKey(key) => KB_REPORT.lock().await.press_key(key),
-        EventKind::ReleaseKey(key) => KB_REPORT.lock().await.release_key(key),
-        EventKind::PressModifier(modifier) => KB_REPORT.lock().await.press_modifier(modifier),
-        EventKind::ReleaseModifier(modifier) => KB_REPORT.lock().await.release_modifier(modifier),
-        EventKind::SetLayer(_) => {}
-    }
+    select(
+        async {
+            loop {
+                let WaitResult::Message(event) = button_sub.next_message().await else {
+                    error!("lagged");
+                    continue;
+                };
+
+                loop {
+                    let mut r = KB_REPORT.lock().await;
+                    match event {
+                        button::Event::PressKey(k) => {
+                            r.actual.press_key(k);
+                            r.unsent.press_key(k);
+                        }
+                        button::Event::PressMod(m) => {
+                            r.actual.press_modifier(m);
+                            r.unsent.press_modifier(m);
+                        }
+
+                        // we got a key release, but if the key press hasn't been sent yet, we
+                        // wait for a bit until it has.
+                        button::Event::ReleaseKey(k) if r.unsent.key_pressed(k) => {
+                            drop(r);
+                            Timer::after(Duration::from_millis(1)).await;
+                            continue;
+                        }
+                        button::Event::ReleaseMod(m) if r.unsent.modifier_pressed(m) => {
+                            drop(r);
+                            Timer::after(Duration::from_millis(1)).await;
+                            continue;
+                        }
+
+                        button::Event::ReleaseKey(k) => r.actual.release_key(k),
+                        button::Event::ReleaseMod(m) => r.actual.release_modifier(m),
+                    }
+                    break;
+                }
+            }
+        },
+        keypress_handler(&mut *events.subscriber, &mut *button_pub),
+    )
+    .await;
 }
 
 #[embassy_executor::task]
@@ -107,9 +158,6 @@ async fn task(stream: HidStream, handler: &'static Handler) {
     if let Err(e) = keyboard_report(stream, handler).await {
         log::error!("keyboard error: {e:?}");
     }
-    //if let Err(e) = mouse_wiggler(stream).await {
-    //    log::error!("mouse wiggler: {e:?}");
-    //}
 }
 
 async fn keyboard_report(mut stream: HidStream, _handler: &'static Handler) -> Result<(), Error> {
@@ -117,7 +165,12 @@ async fn keyboard_report(mut stream: HidStream, _handler: &'static Handler) -> R
     loop {
         Timer::after(Duration::from_millis(2)).await;
 
-        let report = KB_REPORT.lock().await.clone();
+        let report = {
+            let mut reports = KB_REPORT.lock().await;
+            reports.unsent = EMPTY_KEYBOARD_REPORT;
+            reports.actual.clone()
+        };
+
         if report.keycodes != EMPTY_KEYBOARD_REPORT.keycodes {
             log::trace!("keys: {:x?}", report.keycodes);
         }
@@ -128,48 +181,6 @@ async fn keyboard_report(mut stream: HidStream, _handler: &'static Handler) -> R
         #[cfg(not(feature = "n-key-rollover"))]
         stream.write_serialize(&report).await?;
     }
-}
-
-#[allow(dead_code)]
-async fn mouse_wiggler(mut stream: HidStream) -> Result<(), Error> {
-    stream.ready().await;
-
-    let (_r, mut w) = stream.split();
-
-    let write_fut = async move {
-        let mut x = 1;
-        loop {
-            for _ in 0..100 {
-                Timer::after(Duration::from_millis(10)).await;
-                log::info!("sending mouse report");
-                //w.ready().await;
-                w.write_serialize(&MouseReport {
-                    x,
-                    y: 0,
-                    buttons: 0,
-                    wheel: 0,
-                    pan: 0,
-                })
-                .await?;
-            }
-            x = -x;
-        }
-    };
-
-    //let read_fut = async move {
-    //    let mut buf = [0u8; MAX_PACKET_SIZE as usize];
-    //    loop {
-    //        Timer::after(Duration::from_millis(30)).await;
-    //        let n = r.read(&mut buf).await?;
-    //        log::info!("got packet: {:?}", &buf[..n]);
-    //    }
-    //};
-
-    //let r: Result<((), ()), Error> = try_join(write_fut, read_fut).await;
-    let r: Result<(), Error> = write_fut.await;
-    r?;
-
-    Ok(())
 }
 
 #[derive(Debug)]

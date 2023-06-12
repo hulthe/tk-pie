@@ -1,7 +1,7 @@
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_time::{Duration, Timer};
 
-use crate::ws2812::Rgb;
+use crate::rgb::Rgb;
 
 pub type CS = CriticalSectionRawMutex;
 

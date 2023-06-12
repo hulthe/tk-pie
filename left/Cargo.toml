@@ -1,0 +1,29 @@
+[package]
+name = "tangentbord1-left"
+version = "0.1.0"
+authors = ["Joakim Hulthe <joakim@hulthe.net>"]
+description = "Keyboard firmware"
+edition = "2021"
+
+[dependencies.tangentbord1]
+path = "../lib"
+package = "tangentbord1-lib"
+
+[dependencies]
+tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
+cortex-m-rt = "0.7"
+embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "critical-section-impl"] }
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["arch-cortex-m", "log", "executor-thread", "nightly", "integrated-timers" ] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly"] }
+embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
+embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
+log = "0.4.17"
+postcard = { version = "1.0.4", features = ["alloc"] }
+
+[patch."https://git.nubo.sh/hulthe/tgnt.git"]
+tgnt = { path = "../../tgnt" }
+
+[build-dependencies]
+tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
+ron = "0.8.0"
+postcard = { version = "1", features = ["use-std"] }

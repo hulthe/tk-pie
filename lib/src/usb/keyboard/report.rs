@@ -5,7 +5,7 @@
 /// keyboard LEDs.
 ///
 /// Unlike usbd_hids KeyboardReport, this one supports N-key rollover.
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Zeroable, Pod)]
 #[cfg(feature = "n-key-rollover")]
 #[repr(C, packed)]
 pub struct KeyboardReport {
@@ -15,7 +15,8 @@ pub struct KeyboardReport {
     pub keycodes: [u8; 27],
 }
 
-use core::mem::{size_of, transmute};
+use bytemuck::{cast_ref, Pod, Zeroable};
+use core::mem::size_of;
 use tgnt::{button::Modifier, keys::Key};
 
 #[cfg(not(feature = "n-key-rollover"))]
@@ -35,14 +36,21 @@ pub const EMPTY_KEYBOARD_REPORT: KeyboardReport = KeyboardReport {
     keycodes: [0; 6],
 };
 
+/// Get the byte index, and the mask for that byte, in the keycode bitmap.
+fn key_to_byte_mask(key: Key) -> (usize, u8) {
+    let keycode = u8::from(key);
+    let byte = keycode >> 3;
+    let bit = keycode & 0b111;
+    let mask = 1 << bit;
+
+    (usize::from(byte), mask)
+}
+
 #[cfg(feature = "n-key-rollover")]
 impl KeyboardReport {
     #[inline(always)]
     pub fn set_key(&mut self, key: Key, pressed: bool) {
-        let keycode = u8::from(key);
-        let byte = keycode >> 3;
-        let bit = keycode & 0b111;
-        let mask = 1 << bit;
+        let (byte, mask) = key_to_byte_mask(key);
 
         if let Some(k) = self.keycodes.get_mut(byte as usize) {
             if pressed {
@@ -51,7 +59,7 @@ impl KeyboardReport {
                 *k &= !mask;
             }
         } else {
-            log::warn!("Tried to set out-of-range keycode: 0x{keycode:x}");
+            log::warn!("Tried to set out-of-range keycode: 0x{:x}", u8::from(key));
         }
     }
 
@@ -63,6 +71,17 @@ impl KeyboardReport {
     #[inline(always)]
     pub fn release_key(&mut self, key: Key) {
         self.set_key(key, false)
+    }
+
+    #[inline(always)]
+    pub fn key_pressed(&mut self, key: Key) -> bool {
+        let (byte, mask) = key_to_byte_mask(key);
+        if let Some(k) = self.keycodes.get_mut(byte as usize) {
+            (*k & mask) != 0
+        } else {
+            log::warn!("Tried to get out-of-range keycode: 0x{:x}", u8::from(key));
+            false
+        }
     }
 
     #[inline(always)]
@@ -85,9 +104,13 @@ impl KeyboardReport {
     }
 
     #[inline(always)]
+    pub fn modifier_pressed(&mut self, modifier: Modifier) -> bool {
+        (self.modifier & u8::from(modifier)) != 0
+    }
+
+    #[inline(always)]
     pub fn as_bytes(&self) -> &[u8; size_of::<KeyboardReport>()] {
-        // SAFETY: KeyboardReport is repr(C, packed) and contains only u8s.
-        unsafe { transmute(self) }
+        cast_ref(self)
     }
 }
 

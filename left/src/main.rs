@@ -3,6 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(type_alias_impl_trait)]
+#![cfg(target_arch = "arm")]
 
 extern crate alloc;
 extern crate cortex_m_rt;
@@ -12,12 +13,16 @@ use embassy_executor::Spawner;
 use embassy_rp::gpio::{Level, Output, Pin};
 use embassy_time::{Duration, Timer};
 use log::error;
-use tangentbord1::board::Board;
-use tangentbord1::keyboard::{Half, KeyboardConfig};
-use tangentbord1::logger::Logger;
-use tangentbord1::util::{stall, wheel};
-use tangentbord1::ws2812::{Rgb, Ws2812};
-use tangentbord1::{allocator, rtt, uart, usb};
+use tangentbord1::{
+    board::Board,
+    event::Half,
+    keyboard::KeyboardConfig,
+    logger::Logger,
+    rgb::Rgb,
+    util::{stall, wheel},
+    ws2812::Ws2812,
+    {allocator, rtt, uart, usb},
+};
 use tgnt::layer::Layer;
 
 #[embassy_executor::main]
@@ -48,7 +53,7 @@ async fn main(_spawner: Spawner) {
 
     neopixel.write(&[Rgb::new(0xFF, 0x00, 0x00)]).await;
 
-    let layers = include_bytes!("layers-left.pc");
+    let layers = include_bytes!("layers.pc");
     let Ok(layers): Result<Vec<Layer>, _> = postcard::from_bytes(layers) else {
         log::error!("Failed to deserialize layer config");
         stall().await

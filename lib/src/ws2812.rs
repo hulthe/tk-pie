@@ -1,22 +1,15 @@
-use core::fmt::{self, Debug};
-use core::mem::transmute;
-use core::ops::Div;
-
 use embassy_rp::dma::{self, AnyChannel};
 use embassy_rp::pio::{self, FifoJoin, Instance, Pio, PioPin, ShiftConfig, ShiftDirection};
 use embassy_rp::relocate::RelocatedProgram;
 use embassy_rp::{Peripheral, PeripheralRef};
 use fixed::FixedU32;
 
+use crate::rgb::Rgb;
+
 pub struct Ws2812<P: pio::Instance + 'static> {
     sm: pio::StateMachine<'static, P, 0>,
     dma: PeripheralRef<'static, AnyChannel>,
 }
-
-/// An Rgb value that can be safely transmuted to u32 for use with Ws2812.
-#[repr(transparent)]
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Rgb(u32);
 
 impl<P: Instance> Ws2812<P> {
     pub fn new(
@@ -94,41 +87,5 @@ impl<P: Instance> Ws2812<P> {
     pub async fn write(&mut self, colors: &[Rgb]) {
         let colors = Rgb::slice_as_u32s(colors);
         self.sm.tx().dma_push(self.dma.reborrow(), colors).await;
-    }
-}
-
-impl Rgb {
-    #[inline(always)]
-    pub const fn new(r: u8, g: u8, b: u8) -> Self {
-        Self(u32::from_be_bytes([g, r, b, 0]))
-    }
-
-    /// Get the red, green, and blue components of this Rgb.
-    #[inline(always)]
-    pub const fn components(&self) -> [u8; 3] {
-        let [g, r, b, _] = self.0.to_be_bytes();
-        [r, g, b]
-    }
-
-    #[inline(always)]
-    pub fn slice_as_u32s(rgbs: &[Rgb]) -> &[u32] {
-        // SAFETY: Rgb contains only a u32, and is #[repr(transparent)]
-        unsafe { transmute(rgbs) }
-    }
-}
-
-impl Debug for Rgb {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let [r, g, b] = self.components();
-        f.debug_tuple("Rgb").field(&r).field(&g).field(&b).finish()
-    }
-}
-
-impl Div<u8> for Rgb {
-    type Output = Rgb;
-
-    fn div(self, d: u8) -> Self::Output {
-        let [r, g, b] = self.components();
-        Rgb::new(r / d, g / d, b / d)
     }
 }

@@ -3,7 +3,7 @@ use embassy_rp::{peripherals::USB, usb::Driver};
 use embassy_usb::{Builder, Config, UsbDevice};
 use static_cell::StaticCell;
 
-use crate::{keyboard::KbEvents, Irqs};
+use crate::{interrupts::Irqs, keyboard::KbEvents};
 
 pub mod keyboard;
 pub mod logger;

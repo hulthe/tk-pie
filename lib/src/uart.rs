@@ -11,12 +11,13 @@ use heapless::Vec;
 use serde::{Deserialize, Serialize};
 use static_cell::StaticCell;
 
-use crate::keyboard::{self, Half, KbEvents};
-use crate::Irqs;
+use crate::event::{switch, Half};
+use crate::interrupts::Irqs;
+use crate::keyboard::KbEvents;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum Message {
-    KeyboardEvent(keyboard::Event),
+    KeyboardEvent(switch::Event),
 }
 
 pub async fn start(tx: PIN_0, rx: PIN_1, uart: UART0, board: Half, events: KbEvents) {

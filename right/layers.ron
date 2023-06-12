@@ -23,7 +23,7 @@
 			Key(Z),
 
 			// Thumbpad
-			PrevLayer,
+			HoldLayer(1),
 			Key(Return),
 			Key(Delete),
 		],
@@ -53,7 +53,7 @@
 			None,
 
 			// Thumbpad
-			PrevLayer,
+			HoldLayer(1),
 			Key(Return),
 			Key(Delete),
 		],
@@ -82,7 +82,7 @@
 			None,
 
 			// Thumbpad
-			PrevLayer,
+			HoldLayer(1),
 			Key(Return),
 			Key(Delete),
 		],

@@ -1,5 +1,5 @@
 [package]
-name = "tangentbord1"
+name = "tangentbord1-lib"
 version = "0.1.0"
 authors = ["Joakim Hulthe <joakim@hulthe.net>"]
 description = "Keyboard firmware"
@@ -14,15 +14,14 @@ usb-device = "0.2.9"
 usbd-hid = "0.6.1"
 static_cell = "1.0.0"
 embedded-io = { version = "*", features = ["async"] }
-futures = { version = "0.3", default-features = false }
-embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "arch-cortex-m", "executor-thread", "nightly", "integrated-timers" ] }
+futures = { version = "0.3", default-features = false, features = ["async-await"] }
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "executor-thread", "nightly", "integrated-timers" ] }
 embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly"] }
 embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-usb = { git = "https://github.com/embassy-rs/embassy.git", features = ["usbd-hid"] }
 embassy-usb-logger = { git = "https://github.com/embassy-rs/embassy.git", features = [] }
 embassy-usb-driver = { git = "https://github.com/embassy-rs/embassy.git", features = [] }
-embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "critical-section-impl"] }
 log = "0.4.17"
 pio = "0.2.1"
 pio-proc = "0.2.1"
@@ -39,8 +38,17 @@ crc-any = "2.4.3"
 serde = { version = "1.0.163", default-features = false, features = ["derive"] }
 bytemuck = { version = "1.13.1", features = ["derive"] }
 
-#[patch."https://git.nubo.sh/hulthe/tgnt.git"]
-#tgnt = { path = "../tgnt" }
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["arch-std"] }
+embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = ["std", "generic-queue"] }
+simple_logger = "4"
+
+[target.thumbv6m-none-eabi.dependencies]
+embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "critical-section-impl"] }
+embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["arch-cortex-m"] }
+
+[patch."https://git.nubo.sh/hulthe/tgnt.git"]
+tgnt = { path = "../../tgnt" }
 
 [build-dependencies]
 tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }

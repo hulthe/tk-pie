@@ -17,8 +17,7 @@ use tgnt::layer::Layer;
 
 fn main() {
     memory();
-    serialize_layout("./layers-left.ron", "./src/bin/layers-left.pc");
-    serialize_layout("./layers-right.ron", "./src/bin/layers-right.pc");
+    serialize_layout("./layers.ron", "./src/layers.pc");
 }
 
 fn memory() {
@@ -27,7 +26,7 @@ fn memory() {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
     File::create(out.join("memory.x"))
         .unwrap()
-        .write_all(include_bytes!("memory.x"))
+        .write_all(include_bytes!("../memory.x"))
         .unwrap();
     println!("cargo:rustc-link-search={}", out.display());
 
@@ -35,7 +34,7 @@ fn memory() {
     // any file in the project changes. By specifying `memory.x`
     // here, we ensure the build script is only re-run when
     // `memory.x` is changed.
-    println!("cargo:rerun-if-changed=memory.x");
+    println!("cargo:rerun-if-changed=../memory.x");
 
     // --nmagic turns off page alignment of sections (which saves flash space)
     println!("cargo:rustc-link-arg-bins=--nmagic");

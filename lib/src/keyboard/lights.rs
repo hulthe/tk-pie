@@ -1,9 +1,12 @@
 use core::cmp::min;
 
+use atomic_polyfill::Ordering;
+use embassy_futures::yield_now;
 use embassy_time::{Duration, Instant, Timer};
 use futures::{select_biased, FutureExt};
+use tgnt::button::Button;
 
-use crate::{util::wheel, ws2812::Rgb};
+use crate::{rgb::Rgb, util::wheel};
 
 use super::{Event, EventKind, KbEvents, State, SWITCH_COUNT};
 
@@ -140,57 +143,54 @@ async fn handle_event(
     state: &'static State,
     lights: &mut [LightState; SWITCH_COUNT],
 ) {
-    match event.kind {
-        EventKind::PressKey(_) => {
-            if state.half != event.source {
-                return;
-            }
-            let Some(light) = lights.get_mut(event.source_button) else { return; };
-            *light = LightState::Solid(Rgb::new(0, 150, 0));
-        }
-        EventKind::PressModifier(_) => {
-            if state.half != event.source {
-                return;
-            }
-            let Some(light) = lights.get_mut(event.source_button) else { return; };
-            *light = LightState::Solid(Rgb::new(0, 0, 150));
-        }
-        EventKind::ReleaseKey(_) | EventKind::ReleaseModifier(_) => {
-            if state.half != event.source {
-                return;
-            }
-            let Some(light) = lights.get_mut(event.source_button) else { return; };
-            *light = LightState::FadeBy(0.85);
-        }
-        EventKind::SetLayer(layer) => {
-            let layer = min(layer, state.layers.len().saturating_sub(1) as u16);
-            let buttons_to_light_up = if state.layers.len() <= 3 {
-                match layer {
-                    0 => [0, 1, 2, 3, 4].as_ref(),
-                    1 => &[5, 6, 7, 8, 9],
-                    2 => &[10, 11, 12, 13, 14],
-                    _ => &[],
-                }
-            } else {
-                match layer {
-                    0 => [0, 5, 10].as_ref(),
-                    1 => &[1, 6, 11],
-                    2 => &[2, 7, 12],
-                    3 => &[3, 8, 13],
-                    4 => &[4, 9, 14],
-                    _ => &[],
-                }
-            };
+    let rgb = match event.kind {
+        EventKind::Press { button } => match button {
+            Button::Key(..) => LightState::Solid(Rgb::new(0, 150, 0)),
+            Button::Mod(..) => LightState::Solid(Rgb::new(0, 0, 150)),
+            Button::ModTap(..) => LightState::Solid(Rgb::new(0, 0, 150)),
+            Button::Compose(..) => LightState::Solid(Rgb::new(0, 100, 100)),
+            Button::NextLayer | Button::PrevLayer => {
+                yield_now().await; // dirty hack to make sure layer_switch_task gets to run first
+                let layer = state.current_layer.load(Ordering::Relaxed);
+                let layer = min(layer, state.layers.len().saturating_sub(1) as u16);
+                let buttons_to_light_up = if state.layers.len() <= 3 {
+                    match layer {
+                        0 => [0, 1, 2, 3, 4].as_ref(),
+                        1 => &[5, 6, 7, 8, 9],
+                        2 => &[10, 11, 12, 13, 14],
+                        _ => &[],
+                    }
+                } else {
+                    match layer {
+                        0 => [0, 5, 10].as_ref(),
+                        1 => &[1, 6, 11],
+                        2 => &[2, 7, 12],
+                        3 => &[3, 8, 13],
+                        4 => &[4, 9, 14],
+                        _ => &[],
+                    }
+                };
 
-            let solid_until = Instant::now() + Duration::from_millis(200);
-            for &button in buttons_to_light_up {
-                let Some(light) = lights.get_mut(button) else { continue; };
-                *light = LightState::SolidThenFade {
-                    color: Rgb::new(120, 0, 120),
-                    solid_until,
-                    fade_by: 0.85,
+                let solid_until = Instant::now() + Duration::from_millis(200);
+                for &button in buttons_to_light_up {
+                    let Some(light) = lights.get_mut(button) else { continue; };
+                    *light = LightState::SolidThenFade {
+                        color: Rgb::new(120, 0, 120),
+                        solid_until,
+                        fade_by: 0.85,
+                    }
                 }
+                LightState::Solid(Rgb::new(100, 0, 100))
             }
-        }
+            _ => LightState::Solid(Rgb::new(150, 0, 0)),
+        },
+        EventKind::Release { .. } => LightState::FadeBy(0.85),
+    };
+
+    if event.source != state.half {
+        return;
     }
+
+    let Some(light) = lights.get_mut(event.source_button) else { return; };
+    *light = rgb;
 }

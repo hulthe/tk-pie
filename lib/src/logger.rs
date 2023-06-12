@@ -24,8 +24,10 @@ impl Logger {
 
         static LOGGER: StaticCell<Logger> = StaticCell::new();
         let logger = LOGGER.init(self);
-        unsafe { log::set_logger_racy(logger).unwrap() };
-        log::set_max_level(log::LevelFilter::Debug);
+        unsafe {
+            log::set_logger_racy(logger).unwrap();
+            log::set_max_level_racy(log::LevelFilter::Debug);
+        }
     }
 }
 
