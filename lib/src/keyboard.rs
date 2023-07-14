@@ -9,7 +9,7 @@ use embassy_rp::{
     peripherals::PIO1,
 };
 use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
-use embassy_time::{Duration, Instant};
+use embassy_time::{Duration, Instant, Timer};
 use log::{debug, error, info, warn};
 use static_cell::StaticCell;
 use tgnt::{button::Button, layer::Layer};
@@ -158,8 +158,9 @@ impl KbEventsTx<'_> {
     }
 }
 
-pub const MOD_TAP_TIME: Duration = Duration::from_millis(150);
+pub const MOD_TAP_TIME: Duration = Duration::from_millis(200);
 pub const SWITCH_COUNT: usize = 18;
+pub const DEBOUNCE_THRESHOLD: Duration = Duration::from_millis(1);
 
 /// Task for monitoring a single switch pin, and handling button presses.
 #[embassy_executor::task(pool_size = 18)]
@@ -205,6 +206,7 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
             button: button.clone(),
         }));
 
+        Timer::after(DEBOUNCE_THRESHOLD).await;
         pin.wait_for_high().await;
         let released_after = pressed_at.elapsed();
 
@@ -214,6 +216,8 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
             button: button.clone(),
             after: released_after.into(),
         }));
+
+        Timer::after(DEBOUNCE_THRESHOLD).await;
     }
 }
 
