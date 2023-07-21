@@ -1,90 +1,181 @@
 [
-	Layer(
-		buttons: [
-			// Row 1
-			Key(F),
-			Key(G),
-			Key(C),
-			Key(R),
-			Key(L),
+	[
+		Layer(
+			buttons: [
+				// Row 1
+				Key(F),
+				Key(G),
+				Key(C),
+				Key(R),
+				Key(L),
 
-			// Row 2
-			Key(D),
-			ModTap(H, RCtrl),
-			ModTap(T, RShift),
-			ModTap(N, RAlt),
-			ModTap(S, RMod),
+				// Row 2
+				Key(D),
+				ModTap(H, RCtrl),
+				ModTap(T, RShift),
+				ModTap(N, RAlt),
+				ModTap(S, RMod),
 
-			// Row 3
-			Key(B),
-			Key(M),
-			Key(W),
-			Key(V),
-			Key(Z),
+				// Row 3
+				Key(B),
+				Key(M),
+				Key(W),
+				Key(V),
+				Key(Z),
 
-			// Thumbpad
-			HoldLayer(1),
-			Key(Return),
-			Key(Delete),
-		],
-	),
-	Layer(
-		buttons: [
-			// Row 1
-			Key(PrintScreen),
-			Key(D7),
-			Key(D8),
-			Key(D9),
-			Key(D0),
+				// Thumbpad
+				Layer(Peek, Right, 1),
+				Key(Return),
+				Key(Delete),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				Compose(O, A, None), // å
+				Key(D7),
+				Key(D8),
+				Key(D9),
+				Key(D0),
 
-			// Row 2
-			None,
-			ModTap(D4, RCtrl),
-			ModTap(D5, RShift),
-			ModTap(D6, RAlt),
-			//ModTap(, RMod),
-			Mod(RMod),
+				// Row 2
+				Compose(Apostrophe, A, None), // ä
+				ModTap(D4, RCtrl),
+				ModTap(D5, RShift),
+				ModTap(D6, RAlt),
+				//ModTap(, RMod),
+				Mod(RMod),
 
-			// Row 3
-			None,
-			Key(D1),
-			Key(D2),
-			Key(D3),
-			None,
+				// Row 3
+				Compose(Apostrophe, A, None), // ö
+				Key(D1),
+				Key(D2),
+				Key(D3),
+				None,
 
-			// Thumbpad
-			HoldLayer(1),
-			Key(Return),
-			Key(Delete),
-		],
-	),
-	Layer(
-		buttons: [
-			// Row 1
-			None,
-			None,
-			None,
-			None,
-			None,
+				// Thumbpad
+				Layer(Peek, Right, 1),
+				Key(Return),
+				Key(Delete),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				Key(F1),
+				Key(F4),
+				Key(F7),
+				Key(F10),
+				Layer(Move, Down, 1),
 
-			// Row 2
-			None,
-			Mod(RCtrl),
-			Mod(RShift),
-			Mod(RAlt),
-			Mod(RMod),
+				// Row 2
+				Key(F2),
+				ModTap(F5, RCtrl),
+				ModTap(F8, RShift),
+				ModTap(F11, RAlt),
+				Mod(RMod),
 
-			// Row 3
-			None,
-			None,
-			None,
-			None,
-			None,
+				// Row 3
+				Key(F3),
+				Key(F6),
+				Key(F9),
+				Key(F12),
+				None,
 
-			// Thumbpad
-			HoldLayer(1),
-			Key(Return),
-			Key(Delete),
-		],
-	),
+				// Thumbpad
+				Layer(Peek, Right, 1),
+				Key(Return),
+				Key(Delete),
+			],
+		),
+	],
+	[ // gaming row
+		Layer(
+			buttons: [
+				// Row 1
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 2
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 3
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Thumbpad
+				Layer(Peek, Right, 1),
+				Key(Return),
+				Key(Delete),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 2
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 3
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Thumbpad
+				Layer(Peek, Right, 1),
+				Key(Return),
+				Key(Delete),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				None,
+				None,
+				None,
+				None,
+				Layer(Move, Up, 1),
+
+				// Row 2
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 3
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Thumbpad
+				Layer(Peek, Right, 1),
+				Key(Return),
+				Key(Delete),
+			],
+		),
+	],
 ]

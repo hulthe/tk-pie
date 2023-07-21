@@ -1,6 +1,6 @@
 mod lights;
 
-use core::sync::atomic::{AtomicU16, Ordering};
+use core::sync::atomic::Ordering;
 
 use alloc::{boxed::Box, vec::Vec};
 use embassy_executor::Spawner;
@@ -12,9 +12,13 @@ use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
 use embassy_time::{Duration, Instant, Timer};
 use log::{debug, error, info, warn};
 use static_cell::StaticCell;
-use tgnt::{button::Button, layer::Layer};
+use tgnt::{
+    button::{Button, LayerDir, LayerShift},
+    layer::Layer,
+};
 
 use crate::{
+    atomics::AtomicCoord,
     event::{
         switch::{Event, EventKind},
         Half,
@@ -32,14 +36,16 @@ pub struct KeyboardConfig {
     /// Array of LED indices of each switch
     pub led_map: [usize; SWITCH_COUNT],
     pub led_driver: Ws2812<PIO1>,
-    pub layers: Vec<Layer>,
+    /// Matrix of layers. Stored as rows of columns.
+    pub layers: Vec<Vec<Layer>>,
 }
 
 struct State {
     /// Which board is this.
     half: Half,
-    current_layer: AtomicU16,
-    layers: &'static [Layer],
+    current_layer: AtomicCoord,
+    layer_cols: usize,
+    layers: &'static [Vec<Layer>],
     /// Array of LED indices of each switch
     led_map: [usize; SWITCH_COUNT],
     lights: Lights<PIO1, SWITCH_COUNT>,
@@ -81,18 +87,21 @@ impl KeyboardConfig {
         static STATE: StaticCell<State> = StaticCell::new();
         let state = STATE.init_with(|| State {
             half: self.half,
-            current_layer: AtomicU16::new(0),
+            current_layer: AtomicCoord::new(),
+            layer_cols: self.layers.iter().map(|row| row.len()).max().unwrap_or(0),
             layers: Box::leak(self.layers.into_boxed_slice()),
             lights: Lights::new(self.led_driver),
             led_map: self.led_map,
         });
 
-        for (i, layer) in state.layers.iter().enumerate() {
-            if layer.buttons.len() != SWITCH_COUNT {
-                warn!(
-                    "layer {i} defines {} buttons, but there are {SWITCH_COUNT} switches",
-                    layer.buttons.len(),
-                )
+        for (y, row) in state.layers.iter().enumerate() {
+            for (x, layer) in row.iter().enumerate() {
+                if layer.buttons.len() != SWITCH_COUNT {
+                    warn!(
+                        "layer ({x}, {y}) defines {} buttons, but there are {SWITCH_COUNT} switches",
+                        layer.buttons.len(),
+                    )
+                }
             }
         }
 
@@ -176,21 +185,19 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
         // TODO: do we need debouncing?
 
         // get current layer
-        let mut current_layer = state.current_layer.load(Ordering::Relaxed);
-        let layer_count = state.layers.len() as u16;
-        if current_layer >= layer_count {
-            error!("current layer was out of bounds for some reason ({current_layer})");
-            current_layer = 0;
-        }
-        let Some(Layer { buttons }) = state.layers.get(usize::from(current_layer)) else {
-            error!("current layer was out of bounds for some reason ({current_layer})");
-            state.current_layer.store(0, Ordering::Relaxed);
+        let (x, y) = state.current_layer.load(Ordering::Relaxed);
+
+        let Some(Layer { buttons }) = state.layers.get(usize::from(y))
+            .and_then(|row| row.get(usize::from(x))) else {
+            // currently layer is null, do nothing
+            pin.wait_for_high().await;
             continue;
         };
 
         // and current button
         let Some(button) = buttons.get(switch_num) else {
             warn!("no button defined for switch {switch_num}");
+            pin.wait_for_high().await;
             continue;
         };
 
@@ -223,30 +230,43 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
 
 #[embassy_executor::task]
 async fn layer_switch_task(mut events: KbEvents, state: &'static State) {
-    let layer_count = state.layers.len() as u16;
-    let Some(last_layer) = layer_count.checked_sub(1) else {
+    let col_count = state.layer_cols as u16;
+    let row_count = state.layers.len() as u16;
+    let Some(last_row) = row_count.checked_sub(1) else {
+        error!("no layers specified");
+        return;
+    };
+
+    let Some(last_col) = col_count.checked_sub(1) else {
         error!("no layers specified");
         return;
     };
 
     loop {
+        use LayerDir::*;
+        use LayerShift::*;
+
         let event = events.recv().await;
-        let layer = state.current_layer.load(Ordering::Relaxed);
-        let new_layer = match event.kind {
+        let (x, y) = state.current_layer.load(Ordering::Relaxed);
+        let (nx, ny) = match event.kind {
             EventKind::Press { button } => match button {
-                Button::NextLayer => layer.wrapping_add(1) % layer_count,
-                Button::PrevLayer => layer.checked_sub(1).unwrap_or(last_layer),
-                Button::HoldLayer(l) => layer.wrapping_add(l) % layer_count,
+                Button::Layer(_, Up, n) => (x, y.checked_sub(n).unwrap_or(last_row)),
+                Button::Layer(_, Down, n) => (x, y.wrapping_add(n) % row_count),
+                Button::Layer(_, Left, n) => (x.checked_sub(n).unwrap_or(last_col), y),
+                Button::Layer(_, Right, n) => (x.wrapping_add(n) % col_count, y),
                 _ => continue,
             },
             EventKind::Release { button, .. } => match button {
-                Button::HoldLayer(l) => layer.checked_sub(l).unwrap_or(last_layer),
+                Button::Layer(Peek, Up, n) => (x, y.wrapping_add(n) % row_count),
+                Button::Layer(Peek, Down, n) => (x, y.checked_sub(n).unwrap_or(last_row)),
+                Button::Layer(Peek, Left, n) => (x.wrapping_add(n) % col_count, y),
+                Button::Layer(Peek, Right, n) => (x.checked_sub(n).unwrap_or(last_col), y),
                 _ => continue,
             },
         };
 
-        state.current_layer.store(new_layer, Ordering::Relaxed);
-        debug!("switched to layer {new_layer}");
+        state.current_layer.store(nx, ny, Ordering::Relaxed);
+        debug!("switched to layer ({nx}, {ny})");
     }
 }
 

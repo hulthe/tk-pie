@@ -50,6 +50,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
     let (mut rx, mut tx) = uart.split();
     let (mut events_rx, mut events_tx) = events.split();
 
+    /// The header of a UART packet.
     #[repr(C)]
     #[derive(Clone, Copy, Debug, NoUninit, AnyBitPattern)]
     struct Header {
@@ -78,11 +79,14 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
 
                 if calculated_crc != crc {
                     log::error!("invalid uart header crc: {header:x?}");
-                    buf.remove(0); // pop the first byte and hope we find a good packet header
+                    buf.remove(0); // drop the first byte and hope we find a good packet header
                     continue;
                 }
 
-                log::debug!("got uart header {header:x?}");
+                log::trace!(
+                    "reading from uart, header={header:?}, bytes_received={}",
+                    rest.len()
+                );
 
                 let len = usize::from(header.len);
                 if rest.len() >= len {

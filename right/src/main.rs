@@ -55,7 +55,7 @@ async fn main(_spawner: Spawner) {
     //Timer::after(Duration::from_millis(3000)).await;
 
     let layers = include_bytes!("layers.pc");
-    let Ok(layers): Result<Vec<Layer>, _> = postcard::from_bytes(layers) else {
+    let Ok(layers): Result<Vec<Vec<Layer>>, _> = postcard::from_bytes(layers) else {
         log::error!("Failed to deserialize layer config");
         stall().await
     };

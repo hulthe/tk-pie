@@ -48,7 +48,7 @@ fn serialize_layout(ron_path: &str, postcard_path: &str) {
     println!("cargo:rerun-if-changed={ron_path}");
 
     let layers = fs::read_to_string(ron_path).expect("Failed to read .ron");
-    let layers: Vec<Layer> = ron::from_str(&layers).expect("Failed to deserialize .ron");
+    let layers: Vec<Vec<Layer>> = ron::from_str(&layers).expect("Failed to deserialize .ron");
 
     let serialized = postcard::to_stdvec(&layers).expect("Failed to serialize layers");
 

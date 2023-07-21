@@ -1,89 +1,180 @@
 [
-	Layer(
-		buttons: [
-			// Row 1
-			Key(Escape),
-			Key(Comma),
-			Key(Period),
-			Key(P),
-			Key(Y),
+	[
+		Layer(
+			buttons: [
+				// Row 1
+				Key(Escape),
+				Key(Comma),
+				Key(Period),
+				Key(P),
+				Key(Y),
 
-			// Row 2
-			ModTap(A, LMod),
-			ModTap(O, LAlt),
-			ModTap(E, LShift),
-			ModTap(U, LCtrl),
-			Key(I),
+				// Row 2
+				ModTap(A, LMod),
+				ModTap(O, LAlt),
+				ModTap(E, LShift),
+				ModTap(U, LCtrl),
+				Key(I),
 
-			// Row 3
-			Key(Colon),
-			Key(Q),
-			Key(J),
-			Key(K),
-			Key(X),
+				// Row 3
+				Key(Colon),
+				Key(Q),
+				Key(J),
+				Key(K),
+				Key(X),
 
-			// Thumbpad
-			Key(Backspace),
-			Key(Space),
-			HoldLayer(1),
-		],
-	),
-	Layer(
-		buttons: [
-			// Row 1
-			Key(Escape),
-			Key(Slash),
-			Key(Equal),
-			Key(Accent),
-			Key(Period),
+				// Thumbpad
+				Key(Backspace),
+				Key(Space),
+				Layer(Peek, Right, 1),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				Key(Escape),
+				Key(Slash),
+				Key(Equal),
+				Key(Accent),
+				Key(Period),
 
-			// Row 2
-			ModTap(BackslashPipe, LMod),
-			ModTap(Dash, LAlt),
-			ModTap(LBracket, LShift),
-			ModTap(RBracket, LCtrl),
-			Key(Tab),
+				// Row 2
+				ModTap(BackslashPipe, LMod),
+				ModTap(Dash, LAlt),
+				ModTap(LBracket, LShift),
+				ModTap(RBracket, LCtrl),
+				Key(Tab),
 
-			// Row 3
-			None,
-			None,
-			None,
-			Key(Apostrophe),
-			None,
+				// Row 3
+				None,
+				None,
+				None,
+				Key(Apostrophe),
+				None,
 
-			// Thumbpad
-			Key(Backspace),
-			Key(Space),
-			HoldLayer(1),
-		],
-	),
-	Layer(
-		buttons: [
-			// Row 1
-			Key(Escape),
-			Key(Mute),
-			Key(VolumeDown),
-			Key(VolumeUp),
-			None,
+				// Thumbpad
+				Key(Backspace),
+				Key(Space),
+				Layer(Peek, Right, 1),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				Key(Escape),
+				Key(Mute),
+				Key(VolumeDown),
+				Key(VolumeUp),
+				None,
 
-			// Row 2
-			Mod(LMod),
-			Mod(LAlt),
-			Mod(LShift),
-			Mod(LCtrl),
-			None,
+				// Row 2
+				Mod(LMod),
+				Mod(LAlt),
+				Mod(LShift),
+				Mod(LCtrl),
+				None,
 
-			// Row 3
-			None,
-			None,
-			None,
-			None,
-			None,
+				// Row 3
+				None,
+				None,
+				None,
+				None,
+				None,
 
-			// Thumbpad
-			Key(Backspace),
-			Key(Space),
-			HoldLayer(1),
-		],
-	),
+				// Thumbpad
+				Key(Backspace),
+				Key(Space),
+				Layer(Peek, Right, 1),
+			],
+		),
+	],
+	[ // gaming row
+		Layer(
+			buttons: [
+				// Row 1
+				Key(Escape),
+				Key(Q),
+				Key(W),
+				Key(E),
+				Key(R),
+
+				// Row 2
+				Mod(LShift),
+				Key(A),
+				Key(S),
+				Key(D),
+				Key(F),
+
+				// Row 3
+				Mod(LCtrl),
+				Key(Z),
+				Key(X),
+				Key(C),
+				Key(V),
+
+				// Thumbpad
+				Key(Backspace),
+				Key(Space),
+				Layer(Peek, Right, 1),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				Key(D1),
+				Key(D2),
+				Key(D3),
+				Key(D4),
+				Key(D5),
+
+				// Row 2
+				Key(D6),
+				Key(D7),
+				Key(D8),
+				Key(D9),
+				Key(D0),
+
+				// Row 3
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Thumbpad
+				Key(Backspace),
+				Key(Space),
+				Layer(Peek, Right, 1),
+			],
+		),
+		Layer(
+			buttons: [
+				// Row 1
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 2
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Row 3
+				None,
+				None,
+				None,
+				None,
+				None,
+
+				// Thumbpad
+				Key(Backspace),
+				Key(Space),
+				Layer(Peek, Right, 1),
+			],
+		),
+	],
 ]

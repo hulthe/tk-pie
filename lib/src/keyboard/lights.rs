@@ -1,7 +1,3 @@
-use core::cmp::min;
-
-use atomic_polyfill::Ordering;
-use embassy_futures::yield_now;
 use embassy_time::{Duration, Instant, Timer};
 use futures::{select_biased, FutureExt};
 use tgnt::button::Button;
@@ -149,6 +145,8 @@ async fn handle_event(
             Button::Mod(..) => LightState::Solid(Rgb::new(0, 0, 150)),
             Button::ModTap(..) => LightState::Solid(Rgb::new(0, 0, 150)),
             Button::Compose(..) => LightState::Solid(Rgb::new(0, 100, 100)),
+            Button::Layer(..) => LightState::Solid(Rgb::new(120, 0, 120)),
+            /*
             Button::NextLayer | Button::PrevLayer => {
                 yield_now().await; // dirty hack to make sure layer_switch_task gets to run first
                 let layer = state.current_layer.load(Ordering::Relaxed);
@@ -182,6 +180,7 @@ async fn handle_event(
                 }
                 LightState::Solid(Rgb::new(100, 0, 100))
             }
+            */
             _ => LightState::Solid(Rgb::new(150, 0, 0)),
         },
         EventKind::Release { .. } => LightState::FadeBy(0.85),

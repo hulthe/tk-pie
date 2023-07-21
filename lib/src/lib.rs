@@ -23,10 +23,11 @@ pub mod usb;
 #[cfg(target_arch = "arm")]
 pub mod ws2812;
 
+pub mod atomics;
 pub mod event;
+pub mod keypress_handler;
 pub mod logger;
 pub mod neopixel;
 pub mod rgb;
 pub mod rtt;
 pub mod util;
-pub mod keypress_handler;

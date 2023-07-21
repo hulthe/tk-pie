@@ -134,16 +134,12 @@ pub async fn keypress_handler(
                 };
 
                 match button {
-                    Button::ModTap(_, _) => {
+                    Button::ModTap(..) => {
                         debug!("adding modtap to queue");
                         // add event to queue
                         insert(queue, button);
                     }
-                    Button::Mod(m) => {
-                        // if events in queue, also add to queue maybe?
-                        // TODO
-                    }
-                    Button::Key(_) => {
+                    Button::Mod(..) | Button::Key(..) => {
                         if queue.is_empty() {
                             debug!("sending key now");
                             // otherwise, send immediately
@@ -195,11 +191,7 @@ pub async fn keypress_handler(
                             slow_release(output, &button).await;
                         };
                     }
-                    Button::Mod(m) => {
-                        debug!("mod not implemented yet");
-                        // TODO
-                    }
-                    Button::Key(_) => {
+                    Button::Mod(..) | Button::Key(..) => {
                         // if this press event was in queue, resolve all ModTaps before in queue as Mods
                         // otherwise, just resolve this
                         if let Some(position_in_queue) = position_in_queue {
