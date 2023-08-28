@@ -15,7 +15,7 @@ const UNTIL_IDLE: Duration = Duration::from_secs(30);
 const IDLE_ANIMATION_SPEED: u64 = 3;
 const IDLE_ANIMATION_KEY_OFFSET: u64 = 10;
 const IDLE_BRIGHTNESS_RAMPUP: Duration = Duration::from_secs(120);
-const MAX_IDLE_BRIGHTESS: f32 = 1.0;
+const MAX_IDLE_BRIGHTESS: f32 = 0.3;
 const MIN_IDLE_BRIGHTESS: f32 = 0.05;
 
 #[derive(Clone, Copy)]
