@@ -1460,6 +1460,7 @@ dependencies = [
 [[package]]
 name = "tgnt"
 version = "0.1.0"
+source = "git+https://git.nubo.sh/hulthe/tgnt.git#c34c317f4e189c9937ea6da1342272efd86ad88d"
 dependencies = [
  "serde",
 ]

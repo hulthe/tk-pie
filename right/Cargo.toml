@@ -20,9 +20,6 @@ embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", features 
 log = "0.4.17"
 postcard = { version = "1.0.4", features = ["alloc"] }
 
-[patch."https://git.nubo.sh/hulthe/tgnt.git"]
-tgnt = { path = "../../tgnt" }
-
 [build-dependencies]
 tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
 ron = "0.8.0"

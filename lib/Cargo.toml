@@ -47,9 +47,6 @@ simple_logger = "4"
 embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "critical-section-impl"] }
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["arch-cortex-m"] }
 
-[patch."https://git.nubo.sh/hulthe/tgnt.git"]
-tgnt = { path = "../../tgnt" }
-
 [build-dependencies]
 tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
 ron = "0.8.0"
