@@ -169,7 +169,7 @@ impl KbEventsTx<'_> {
 
 pub const MOD_TAP_TIME: Duration = Duration::from_millis(200);
 pub const SWITCH_COUNT: usize = 18;
-pub const DEBOUNCE_THRESHOLD: Duration = Duration::from_millis(1);
+pub const DEBOUNCE_THRESHOLD: Duration = Duration::from_millis(15);
 
 /// Task for monitoring a single switch pin, and handling button presses.
 #[embassy_executor::task(pool_size = 18)]
