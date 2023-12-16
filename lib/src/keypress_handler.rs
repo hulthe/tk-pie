@@ -167,6 +167,7 @@ pub async fn keypress_handler(
                 let position_in_queue = queue
                     .iter()
                     .enumerate()
+                    .filter(|(_, queued)| queued.source_half == event.source)
                     .find(|(_, queued)| queued.source_button == event.source_button)
                     .map(|(i, _)| i);
 
