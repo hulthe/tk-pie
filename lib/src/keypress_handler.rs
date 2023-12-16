@@ -86,6 +86,7 @@ pub async fn keypress_handler(
                     error!("first element in queue wasn't a modtap, wtf?");
                     continue;
                 };
+                debug!("modtap resolved as mod: {:?}", event.button);
                 slow_press(output, &event.button).await;
 
                 loop {
@@ -175,7 +176,7 @@ pub async fn keypress_handler(
                         if let Some(position_in_queue) = position_in_queue {
                             // If the modtap was still in the queue, it hasn't been resolved as a mod
                             // yet. Therefore, it is a Tap. Resolve all ModTaps before this one as Mods
-                            debug!("modtap was still in queue");
+                            debug!("modtap was still in queue: {k:?}");
                             for _ in 0..position_in_queue {
                                 let prev_event = queue.pop_front().unwrap();
                                 debug!("pressing earlier event {:?}", prev_event);
@@ -219,7 +220,7 @@ pub async fn keypress_handler(
     }
 }
 
-#[cfg(test)]
+#[cfg(all(target_arch = "x86_64", test))]
 mod tests {
     use core::time;
 
@@ -233,12 +234,102 @@ mod tests {
     };
     use embassy_sync::{blocking_mutex::raw::NoopRawMutex, pubsub::PubSubChannel};
     use embassy_time::with_timeout;
-    use log::info;
     use tgnt::{button::Modifier, keys::Key};
 
-    #[test]
-    fn test_modtap_timings() {
-        simple_logger::SimpleLogger::new().init().unwrap();
+    struct Test {
+        // button index, pressed, delay
+        input: Vec<(usize, bool, Duration)>,
+        expected: Vec<button::Event>,
+    }
+
+    macro_rules! timing_test {
+        ($name:ident, $test:expr) => {
+            #[test]
+            fn $name() {
+                let test: Test = $test;
+                run_test(test);
+            }
+        };
+    }
+
+    const SHORT: Duration = Duration::from_millis(1);
+    const LONG: Duration = Duration::from_millis(160);
+
+    timing_test! {
+        modtap_mod,
+        Test {
+            input: vec![
+                (0, true, SHORT),
+                (1, true, SHORT),
+                (1, false, SHORT),
+                (0, false, SHORT),
+            ],
+            expected: vec![
+                button::Event::PressMod(Modifier::LShift),
+                button::Event::PressKey(Key::B),
+                button::Event::ReleaseKey(Key::B),
+                button::Event::ReleaseMod(Modifier::LShift),
+            ],
+        }
+    }
+    timing_test! {
+        modtap_tap,
+        Test {
+            input: vec![
+                (0, true, SHORT),
+                (1, true, SHORT),
+                (0, false, SHORT),
+                (1, false, SHORT),
+            ],
+            expected: vec![
+                button::Event::PressKey(Key::A),
+                button::Event::ReleaseKey(Key::A),
+                button::Event::PressKey(Key::B),
+                button::Event::ReleaseKey(Key::B),
+            ],
+        }
+    }
+
+    timing_test! { modtap_tap_2x, Test {
+        input: vec![
+            (0, true, SHORT),
+            (2, true, SHORT),
+            (2, false, SHORT),
+            (0, false, SHORT),
+            (0, true, SHORT),
+            (2, true, SHORT),
+            (2, false, SHORT),
+            (0, false, SHORT),
+        ],
+        expected: vec![
+            button::Event::PressMod(Modifier::LShift),
+            button::Event::PressKey(Key::C),
+            button::Event::ReleaseKey(Key::C),
+            button::Event::ReleaseMod(Modifier::LShift),
+            button::Event::PressMod(Modifier::LShift),
+            button::Event::PressKey(Key::C),
+            button::Event::ReleaseKey(Key::C),
+            button::Event::ReleaseMod(Modifier::LShift),
+        ],
+    }}
+
+    timing_test! { modtap_double_shift, Test {
+        input: vec![
+            (0, true, LONG),
+            (3, true, SHORT),
+            (0, false, LONG),
+            (3, false, SHORT),
+        ],
+        expected: vec![
+            button::Event::PressMod(Modifier::LShift),
+            button::Event::ReleaseMod(Modifier::LShift),
+            button::Event::PressMod(Modifier::RShift),
+            button::Event::ReleaseMod(Modifier::RShift),
+        ],
+    }}
+
+    fn run_test(test: Test) {
+        let _ = simple_logger::SimpleLogger::new().init();
 
         let switch_events = PubSubChannel::<NoopRawMutex, switch::Event, 10, 1, 1>::new();
         let button_events = PubSubChannel::<NoopRawMutex, button::Event, 10, 1, 1>::new();
@@ -248,142 +339,76 @@ mod tests {
             Button::ModTap(Key::A, Modifier::LShift),
             Button::ModTap(Key::B, Modifier::LCtrl),
             Button::Key(Key::C),
+            Button::ModTap(Key::D, Modifier::RShift),
         ];
 
-        struct Test {
-            description: &'static str,
-            // button index, pressed, delay
-            input: Vec<(usize, bool, Duration)>,
-            expected: Vec<button::Event>,
-        }
+        // future that iterates over the test input and sends switch events.
+        let clicker = async {
+            for &(i, pressed, delay) in &test.input {
+                let kind = if pressed {
+                    switch::EventKind::Press {
+                        button: buttons[i].clone(),
+                    }
+                } else {
+                    switch::EventKind::Release {
+                        button: buttons[i].clone(),
+                        after: time::Duration::ZERO, // ignore
+                    }
+                };
 
-        let modtap_mod = Test {
-            description: "modtap mod",
-            input: vec![
-                (0, true, Duration::from_millis(25)),
-                (1, true, Duration::from_millis(25)),
-                (1, false, Duration::from_millis(25)),
-                (0, false, Duration::from_millis(25)),
-            ],
-            expected: vec![
-                button::Event::PressMod(Modifier::LShift),
-                button::Event::PressKey(Key::B),
-                button::Event::ReleaseKey(Key::B),
-                button::Event::ReleaseMod(Modifier::LShift),
-            ],
+                let event = switch::Event {
+                    source: Half::Left,
+                    source_button: i,
+                    kind,
+                };
+
+                switch_events.publish_immediate(event);
+
+                Timer::after(delay).await;
+            }
         };
+        let output_listener = async {
+            let mut got = Vec::new();
+            for _expected in &test.expected {
+                let timeout = LONG + Duration::from_millis(50);
+                let event = match with_timeout(timeout, button_sub.next_message()).await {
+                    Ok(WaitResult::Message(event)) => event,
+                    Ok(WaitResult::Lagged(_)) => return Err(("lagged", got)),
+                    Err(_) => return Err(("timeout", got)),
+                };
 
-        let modtap_tap = Test {
-            description: "modtap tap",
-            input: vec![
-                (0, true, Duration::from_millis(25)),
-                (1, true, Duration::from_millis(25)),
-                (0, false, Duration::from_millis(25)),
-                (1, false, Duration::from_millis(25)),
-            ],
-            expected: vec![
-                button::Event::PressKey(Key::A),
-                button::Event::ReleaseKey(Key::A),
-                button::Event::PressKey(Key::B),
-                button::Event::ReleaseKey(Key::B),
-            ],
-        };
+                got.push(event.clone());
+            }
 
-        let modtap_tap_2x = Test {
-            description: "2x modtap tap",
-            input: vec![
-                (0, true, Duration::from_millis(25)),
-                (2, true, Duration::from_millis(25)),
-                (2, false, Duration::from_millis(25)),
-                (0, false, Duration::from_millis(25)),
-                (0, true, Duration::from_millis(25)),
-                (2, true, Duration::from_millis(25)),
-                (2, false, Duration::from_millis(25)),
-                (0, false, Duration::from_millis(25)),
-            ],
-            expected: vec![
-                button::Event::PressMod(Modifier::LShift),
-                button::Event::PressKey(Key::C),
-                button::Event::ReleaseKey(Key::C),
-                button::Event::ReleaseMod(Modifier::LShift),
-                button::Event::PressMod(Modifier::LShift),
-                button::Event::PressKey(Key::C),
-                button::Event::ReleaseKey(Key::C),
-                button::Event::ReleaseMod(Modifier::LShift),
-            ],
-        };
-
-        for test in [modtap_tap, modtap_mod, modtap_tap_2x] {
-            info!("running timing test test {:?}", test.description);
-            embassy_futures::block_on(async {
-                let r = select(
-                    join(
-                        async {
-                            for &(i, pressed, delay) in &test.input {
-                                let kind = if pressed {
-                                    switch::EventKind::Press {
-                                        button: buttons[i].clone(),
-                                    }
-                                } else {
-                                    switch::EventKind::Release {
-                                        button: buttons[i].clone(),
-                                        after: time::Duration::ZERO, // ignore
-                                    }
-                                };
-
-                                let event = switch::Event {
-                                    source: Half::Left,
-                                    source_button: i,
-                                    kind,
-                                };
-
-                                switch_events.publish_immediate(event);
-
-                                Timer::after(delay).await;
-                            }
-                        },
-                        async {
-                            let mut got = Vec::new();
-                            for _expected in &test.expected {
-                                let event = match with_timeout(
-                                    Duration::from_millis(200),
-                                    button_sub.next_message(),
-                                )
-                                .await
-                                {
-                                    Ok(WaitResult::Message(event)) => event,
-                                    Ok(WaitResult::Lagged(_)) => return Err(("lagged", got)),
-                                    Err(_) => return Err(("timeout", got)),
-                                };
-
-                                got.push(event.clone());
-                            }
-
-                            for (event, expected) in got.iter().zip(test.expected.iter()) {
-                                if event != expected {
-                                    return Err(("unexpected event", got));
-                                }
-                            }
-
-                            Ok(())
-                        },
-                    ),
-                    convert_events(
-                        &mut *switch_events.subscriber().unwrap(),
-                        &mut *button_events.publisher().unwrap(),
-                    ),
-                )
-                .await;
-
-                match r {
-                    Either::First(((), Ok(()))) => {}
-                    Either::First(((), Err((msg, got)))) => panic!(
-                        "timing test {:?} failed due to {msg}.\nexpected={:#?} got={:#?}",
-                        test.description, test.expected, got
-                    ),
-                    Either::Second(never) => never,
+            for (event, expected) in got.iter().zip(test.expected.iter()) {
+                if event != expected {
+                    return Err(("unexpected event", got));
                 }
-            });
-        }
+            }
+
+            Ok(())
+        };
+
+        embassy_futures::block_on(async {
+            let r = select(
+                join(clicker, output_listener),
+                keypress_handler(
+                    &mut *switch_events.subscriber().unwrap(),
+                    &mut *button_events.publisher().unwrap(),
+                ),
+            )
+            .await;
+
+            match r {
+                Either::First(((), Ok(()))) => {}
+                Either::First(((), Err((msg, got)))) => panic!(
+                    "timing test failed due to {msg}.\nexpected={:#?} got={:#?}",
+                    test.expected, got
+                ),
+                Either::Second(never) => never,
+            }
+        });
+
+        panic!();
     }
 }
