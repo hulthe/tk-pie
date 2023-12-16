@@ -1,6 +1,6 @@
 use embassy_rp::dma::{self, AnyChannel};
+use embassy_rp::interrupt::typelevel::Binding;
 use embassy_rp::pio::{self, FifoJoin, Instance, Pio, PioPin, ShiftConfig, ShiftDirection};
-use embassy_rp::relocate::RelocatedProgram;
 use embassy_rp::{Peripheral, PeripheralRef};
 use fixed::FixedU32;
 
@@ -14,10 +14,11 @@ pub struct Ws2812<P: pio::Instance + 'static> {
 impl<P: Instance> Ws2812<P> {
     pub fn new(
         pio: impl Peripheral<P = P> + 'static,
+        irqs: impl Binding<P::Interrupt, pio::InterruptHandler<P>>,
         dma: impl dma::Channel,
         pin: impl PioPin,
     ) -> Self {
-        let mut pio = Pio::new(pio);
+        let mut pio = Pio::new(pio, irqs);
         let mut sm = pio.sm0;
         // prepare the PIO program
         let side_set = ::pio::SideSet::new(false, 1, false);
@@ -46,8 +47,8 @@ impl<P: Instance> Ws2812<P> {
 
         let prg = a.assemble_with_wrap(wrap_source, wrap_target);
 
-        let relocated_prg = RelocatedProgram::new(&prg);
-        let loaded_prg = pio.common.load_program(&relocated_prg);
+        //let relocated_prg = RelocatedProgram::new(&prg);
+        let loaded_prg = pio.common.load_program(&prg);
 
         // Clock config
         // TODO CLOCK_FREQ should come from embassy_rp

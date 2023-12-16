@@ -15,6 +15,7 @@ use log::error;
 use tangentbord1::{
     board::Board,
     event::Half,
+    interrupts::Irqs,
     keyboard::KeyboardConfig,
     logger::Logger,
     rgb::Rgb,
@@ -47,8 +48,8 @@ async fn main(_spawner: Spawner) {
 
     let _neopixel_power = Output::new(board.neopixel_power, Level::High);
 
-    let mut neopixel = Ws2812::new(board.PIO0, board.DMA_CH0, board.neopixel);
-    let neopixels_d5 = Ws2812::new(board.PIO1, board.DMA_CH1, board.d5);
+    let mut neopixel = Ws2812::new(board.PIO0, Irqs, board.DMA_CH0, board.neopixel);
+    let neopixels_d5 = Ws2812::new(board.PIO1, Irqs, board.DMA_CH1, board.d5);
 
     neopixel.write(&[Rgb::new(0xFF, 0x00, 0x00)]).await;
 

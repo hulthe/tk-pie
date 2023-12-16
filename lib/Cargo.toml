@@ -13,10 +13,10 @@ embedded-hal = "0.2.5"
 usb-device = "0.2.9"
 usbd-hid = "0.6.1"
 static_cell = "1.0.0"
-embedded-io = { version = "*", features = ["async"] }
+embedded-io-async = "*"
 futures = { version = "0.3", default-features = false, features = ["async-await"] }
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "executor-thread", "nightly", "integrated-timers" ] }
-embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly"] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-usb = { git = "https://github.com/embassy-rs/embassy.git", features = ["usbd-hid"] }
@@ -44,7 +44,7 @@ embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = [
 simple_logger = "4"
 
 [target.thumbv6m-none-eabi.dependencies]
-embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "critical-section-impl"] }
+embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "unstable-pac", "time-driver", "critical-section-impl"] }
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["arch-cortex-m"] }
 
 [build-dependencies]

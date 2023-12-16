@@ -12,9 +12,9 @@ package = "tangentbord1-lib"
 [dependencies]
 tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
 cortex-m-rt = "0.7"
-embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly", "unstable-traits", "unstable-pac", "time-driver", "critical-section-impl"] }
+embassy-rp = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "unstable-pac", "time-driver", "critical-section-impl"] }
 embassy-executor = { git = "https://github.com/embassy-rs/embassy.git", features = ["arch-cortex-m", "log", "executor-thread", "nightly", "integrated-timers" ] }
-embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log", "nightly"] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-time = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 embassy-futures = { git = "https://github.com/embassy-rs/embassy.git", features = ["log"] }
 log = "0.4.17"

@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "lib",
+    "left",
+    "right",
+]
+
+resolver = "2"
+

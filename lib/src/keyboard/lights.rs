@@ -21,6 +21,7 @@ const MIN_IDLE_BRIGHTESS: f32 = 0.05;
 #[derive(Clone, Copy)]
 enum LightState {
     Solid(Rgb),
+    #[allow(dead_code)]
     SolidThenFade {
         color: Rgb,
         solid_until: Instant,
@@ -68,8 +69,12 @@ async fn tick(state: &'static State, lights: &mut [LightState; SWITCH_COUNT]) {
         .lights
         .update(|rgbs| {
             for (button, light) in lights.iter_mut().enumerate() {
-                let Some(&led_id) = state.led_map.get(button) else { continue; };
-                let Some(rgb) = rgbs.get_mut(led_id) else { continue; };
+                let Some(&led_id) = state.led_map.get(button) else {
+                    continue;
+                };
+                let Some(rgb) = rgbs.get_mut(led_id) else {
+                    continue;
+                };
 
                 match &*light {
                     LightState::None => {}
@@ -115,7 +120,9 @@ async fn idle_animation(state: &'static State) {
                 };
 
                 for (n, &i) in state.led_map.iter().enumerate() {
-                    let Some(light) = lights.get_mut(i) else { continue };
+                    let Some(light) = lights.get_mut(i) else {
+                        continue;
+                    };
                     let [r, g, b] = wheel(
                         (n as u64 * IDLE_ANIMATION_KEY_OFFSET + tick * IDLE_ANIMATION_SPEED) as u8,
                     )
@@ -190,6 +197,8 @@ async fn handle_event(
         return;
     }
 
-    let Some(light) = lights.get_mut(event.source_button) else { return; };
+    let Some(light) = lights.get_mut(event.source_button) else {
+        return;
+    };
     *light = rgb;
 }

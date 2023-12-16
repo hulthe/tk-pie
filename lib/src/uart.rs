@@ -5,7 +5,7 @@ use crc_any::CRCu16;
 use embassy_executor::Spawner;
 use embassy_rp::peripherals::{PIN_0, PIN_1, UART0};
 use embassy_rp::uart::{self, BufferedUart, DataBits, Parity, StopBits};
-use embedded_io::asynch::{Read, Write};
+use embedded_io_async::{Read, Write};
 use futures::{select_biased, FutureExt};
 use heapless::Vec;
 use serde::{Deserialize, Serialize};

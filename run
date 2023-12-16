@@ -8,7 +8,7 @@ def main [
 	--serial (-s): string # The serial device to get logs from.
 	--probe (-p): bool # Flash & run using probe-run instead of elf2uf2
 ] {
-	if $probe {
+	if $probe == true {
 		cargo build --bin $bin
 		probe-run --chip RP2040 --speed 4000 ("./target/thumbv6m-none-eabi/debug/" + $bin)
 	} else {
