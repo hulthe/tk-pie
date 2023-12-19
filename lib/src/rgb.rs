@@ -1,7 +1,7 @@
 use bytemuck::{cast_slice, Pod, Zeroable};
 use core::{
     fmt::{self, Debug},
-    ops::Div,
+    ops::{Div, Mul},
 };
 
 /// An Rgb value that can be safely transmuted to u32 for use with Ws2812.
@@ -41,6 +41,19 @@ impl Div<u8> for Rgb {
     fn div(self, d: u8) -> Self::Output {
         let [r, g, b] = self.components();
         Rgb::new(r / d, g / d, b / d)
+    }
+}
+
+impl Mul<f32> for Rgb {
+    type Output = Rgb;
+
+    fn mul(self, factor: f32) -> Self::Output {
+        let [r, g, b] = self.components();
+        Rgb::new(
+            ((r as f32) * factor) as u8,
+            ((g as f32) * factor) as u8,
+            ((b as f32) * factor) as u8,
+        )
     }
 }
 

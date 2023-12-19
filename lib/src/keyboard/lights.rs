@@ -15,7 +15,7 @@ const UNTIL_IDLE: Duration = Duration::from_secs(30);
 const IDLE_ANIMATION_SPEED: u64 = 3;
 const IDLE_ANIMATION_KEY_OFFSET: u64 = 10;
 const IDLE_BRIGHTNESS_RAMPUP: Duration = Duration::from_secs(120);
-const MAX_IDLE_BRIGHTESS: f32 = 0.3;
+const MAX_IDLE_BRIGHTESS: f32 = 0.2;
 const MIN_IDLE_BRIGHTESS: f32 = 0.05;
 
 #[derive(Clone, Copy)]
@@ -123,16 +123,10 @@ async fn idle_animation(state: &'static State) {
                     let Some(light) = lights.get_mut(i) else {
                         continue;
                     };
-                    let [r, g, b] = wheel(
+                    let rgb = wheel(
                         (n as u64 * IDLE_ANIMATION_KEY_OFFSET + tick * IDLE_ANIMATION_SPEED) as u8,
-                    )
-                    .components();
-                    let rgb = Rgb::new(
-                        ((r as f32) * brightness) as u8,
-                        ((g as f32) * brightness) as u8,
-                        ((b as f32) * brightness) as u8,
                     );
-                    *light = rgb;
+                    *light = rgb * brightness;
                 }
             })
             .await;

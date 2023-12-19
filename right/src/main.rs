@@ -104,7 +104,7 @@ async fn main(_spawner: Spawner) {
     neopixel.write(&[Rgb::new(0x00, 0x00, 0xFF)]).await;
 
     for w in 0usize.. {
-        neopixel.write(&[wheel(w as u8)]).await;
+        neopixel.write(&[wheel(w as u8) * 0.15]).await;
         Timer::after(Duration::from_millis(10)).await;
     }
 }
