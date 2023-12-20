@@ -22,20 +22,14 @@ use usbd_hid::descriptor::SerializedDescriptor;
 use crate::{
     event::button,
     keyboard::KbEvents,
+    keypress_handler::keypress_handler,
     usb::keyboard::report::{KeyboardReport, EMPTY_KEYBOARD_REPORT},
-    util::CS, keypress_handler::keypress_handler,
+    util::CS,
 };
 
 use super::MAX_PACKET_SIZE;
 
 struct Handler;
-
-static CONTEXT: StaticCell<Context> = StaticCell::new();
-
-static KB_REPORT: Mutex<CS, Reports> = Mutex::new(Reports {
-    actual: EMPTY_KEYBOARD_REPORT,
-    unsent: EMPTY_KEYBOARD_REPORT,
-});
 
 struct Reports {
     /// The report to be sent to the host machine.
@@ -50,13 +44,26 @@ struct Context {
     state: hid::State<'static>,
 }
 
+/// Set up a USB HID keyboard. This function panics if called more than once.
 pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>, events: KbEvents) {
     log::info!("setting up usb hid");
 
-    let context = CONTEXT.init(Context {
-        handler: Handler,
-        state: hid::State::new(),
-    });
+    let context = {
+        static CONTEXT: StaticCell<Context> = StaticCell::new();
+        // this panics if the functon is called twice
+        CONTEXT.init(Context {
+            handler: Handler,
+            state: hid::State::new(),
+        })
+    };
+
+    let reports = {
+        static KB_REPORT: Mutex<CS, Reports> = Mutex::new(Reports {
+            actual: EMPTY_KEYBOARD_REPORT,
+            unsent: EMPTY_KEYBOARD_REPORT,
+        });
+        &KB_REPORT
+    };
 
     let config = hid::Config {
         //report_descriptor: MouseReport::desc(),
@@ -70,8 +77,8 @@ pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>, events:
 
     let spawner = Spawner::for_current_executor().await;
 
-    spawner.must_spawn(task(stream, &context.handler));
-    spawner.must_spawn(listen_to_events(events));
+    spawner.must_spawn(report_task(stream, &context.handler, reports));
+    spawner.must_spawn(event_listener_task(events, reports));
 
     log::info!("done setting up usb keyboard");
 }
@@ -103,7 +110,7 @@ impl RequestHandler for Handler {
 type HidStream = HidReaderWriter<'static, Driver<'static, USB>, 256, 256>;
 
 #[embassy_executor::task]
-async fn listen_to_events(mut events: KbEvents) {
+async fn event_listener_task(mut events: KbEvents, reports: &'static Mutex<CS, Reports>) {
     let button_events = PubSubChannel::<NoopRawMutex, button::Event, 10, 1, 1>::new();
     let mut button_pub = button_events.publisher().unwrap();
     let mut button_sub = button_events.subscriber().unwrap();
@@ -117,7 +124,7 @@ async fn listen_to_events(mut events: KbEvents) {
                 };
 
                 loop {
-                    let mut r = KB_REPORT.lock().await;
+                    let mut r = reports.lock().await;
                     match event {
                         button::Event::PressKey(k) => {
                             r.actual.press_key(k);
@@ -154,21 +161,29 @@ async fn listen_to_events(mut events: KbEvents) {
 }
 
 #[embassy_executor::task]
-async fn task(stream: HidStream, handler: &'static Handler) {
-    if let Err(e) = keyboard_report(stream, handler).await {
+async fn report_task(
+    stream: HidStream,
+    handler: &'static Handler,
+    reports: &'static Mutex<CS, Reports>,
+) {
+    if let Err(e) = keyboard_report(stream, handler, reports).await {
         log::error!("keyboard error: {e:?}");
     }
 }
 
-async fn keyboard_report(mut stream: HidStream, _handler: &'static Handler) -> Result<(), Error> {
+async fn keyboard_report(
+    mut stream: HidStream,
+    _handler: &'static Handler,
+    reports: &'static Mutex<CS, Reports>,
+) -> Result<(), Error> {
     stream.ready().await;
     loop {
         Timer::after(Duration::from_millis(2)).await;
 
         let report = {
-            let mut reports = KB_REPORT.lock().await;
+            let mut reports = reports.lock().await;
             reports.unsent = EMPTY_KEYBOARD_REPORT;
-            reports.actual.clone()
+            reports.actual
         };
 
         if report.keycodes != EMPTY_KEYBOARD_REPORT.keycodes {

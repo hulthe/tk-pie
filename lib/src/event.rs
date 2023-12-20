@@ -41,7 +41,7 @@ pub mod button {
 
     /// A usb keyboard button was pressed or released.
     ///
-    /// This is a lower-level event than a [SwitchEvent], as things like ModTap and Compose are
+    /// This is a lower-level event than a [switch::Event], as things like ModTap and Compose are
     /// converted to Presses and Releases.
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub enum Event {

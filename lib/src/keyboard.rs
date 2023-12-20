@@ -51,8 +51,13 @@ struct State {
     lights: Lights<PIO1, SWITCH_COUNT>,
 }
 
+/// Number of [KbEvents] returned by [KeyboardConfig::create].
 pub const KB_SUBSCRIBERS: usize = 2;
+
+/// Max number of subscribers for [KB_EVENTS]. Equals [KB_SUBSCRIBERS] plus the two used by
+/// [layer_switch_task] and [lights::task].
 const ACTUAL_KB_SUBSCRIBERS: usize = KB_SUBSCRIBERS + 2;
+
 const KB_EVENT_CAP: usize = 128;
 static KB_EVENTS: PubSubChannel<CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0> =
     PubSubChannel::new();
@@ -115,7 +120,9 @@ impl KeyboardConfig {
         spawner.must_spawn(layer_switch_task(
             KbEvents {
                 publisher: KB_EVENTS.immediate_publisher(),
-                subscriber: KB_EVENTS.subscriber().unwrap(),
+                subscriber: KB_EVENTS
+                    .subscriber()
+                    .expect("Not enough KbEvents allocated"),
             },
             state,
         ));
@@ -123,14 +130,20 @@ impl KeyboardConfig {
         spawner.must_spawn(lights::task(
             KbEvents {
                 publisher: KB_EVENTS.immediate_publisher(),
-                subscriber: KB_EVENTS.subscriber().unwrap(),
+                subscriber: KB_EVENTS
+                    .subscriber()
+                    .expect("Not enough KbEvents allocated"),
             },
             state,
         ));
 
-        Some([(); KB_SUBSCRIBERS].map(|_| KbEvents {
-            publisher: KB_EVENTS.immediate_publisher(),
-            subscriber: KB_EVENTS.subscriber().unwrap(),
+        Some([(); KB_SUBSCRIBERS].map(|_| {
+            KbEvents {
+                publisher: KB_EVENTS.immediate_publisher(),
+                subscriber: KB_EVENTS
+                    .subscriber()
+                    .expect("Not enough KbEvents allocated"),
+            }
         }))
     }
 }
@@ -187,8 +200,11 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
         // get current layer
         let (x, y) = state.current_layer.load(Ordering::Relaxed);
 
-        let Some(Layer { buttons }) = state.layers.get(usize::from(y))
-            .and_then(|row| row.get(usize::from(x))) else {
+        let Some(Layer { buttons }) = state
+            .layers
+            .get(usize::from(y))
+            .and_then(|row| row.get(usize::from(x)))
+        else {
             // currently layer is null, do nothing
             pin.wait_for_high().await;
             continue;

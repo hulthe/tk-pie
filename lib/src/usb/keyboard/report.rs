@@ -50,9 +50,9 @@ fn key_to_byte_mask(key: Key) -> (usize, u8) {
 impl KeyboardReport {
     #[inline(always)]
     pub fn set_key(&mut self, key: Key, pressed: bool) {
-        let (byte, mask) = key_to_byte_mask(key);
+        let (byte_i, mask) = key_to_byte_mask(key);
 
-        if let Some(k) = self.keycodes.get_mut(byte as usize) {
+        if let Some(k) = self.keycodes.get_mut(byte_i) {
             if pressed {
                 *k |= mask;
             } else {
@@ -75,8 +75,8 @@ impl KeyboardReport {
 
     #[inline(always)]
     pub fn key_pressed(&mut self, key: Key) -> bool {
-        let (byte, mask) = key_to_byte_mask(key);
-        if let Some(k) = self.keycodes.get_mut(byte as usize) {
+        let (byte_i, mask) = key_to_byte_mask(key);
+        if let Some(k) = self.keycodes.get_mut(byte_i) {
             (*k & mask) != 0
         } else {
             log::warn!("Tried to get out-of-range keycode: 0x{:x}", u8::from(key));
