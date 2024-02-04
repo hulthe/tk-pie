@@ -1,3 +1,6 @@
+[patch.'https://git.nubo.sh/hulthe/tgnt.git'.tgnt]
+path = "../tgnt"
+
 [workspace]
 members = [
     "lib",

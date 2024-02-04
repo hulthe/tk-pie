@@ -145,7 +145,7 @@ async fn handle_event(
             Button::Key(..) => LightState::Solid(Rgb::new(0, 150, 0)),
             Button::Mod(..) => LightState::Solid(Rgb::new(0, 0, 150)),
             Button::ModTap(..) => LightState::Solid(Rgb::new(0, 0, 150)),
-            Button::Compose(..) => LightState::Solid(Rgb::new(0, 100, 100)),
+            Button::Compose2(..) | Button::Compose3(..) => LightState::Solid(Rgb::new(0, 100, 100)),
             Button::Layer(..) => LightState::Solid(Rgb::new(120, 0, 120)),
             /*
             Button::NextLayer | Button::PrevLayer => {

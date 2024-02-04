@@ -49,6 +49,7 @@ pub mod button {
         ReleaseKey(Key),
         PressMod(Modifier),
         ReleaseMod(Modifier),
+        Wait,
     }
 }
 

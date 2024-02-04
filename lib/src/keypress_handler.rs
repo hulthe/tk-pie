@@ -5,13 +5,18 @@ use embassy_time::{Duration, Instant, Timer};
 use futures::FutureExt;
 use heapless::Deque;
 use log::{debug, error};
-use tgnt::button::Button;
+use tgnt::{button::Button, keys::Key};
 
 use crate::event::{button, switch, Half};
 
-// TODO
+/// The time a ModTap button takes to resolve as a Mod while being held down.
 const MOD_TAP_TIME: Duration = Duration::from_millis(150);
+
+/// The number of switches on this keyboard half.
 const SWITCH_COUNT: usize = 18;
+
+/// The usb keycode mapped to Compose.
+const COMPOSE_KEY: Key = Key::Application;
 
 /// This function perpetually converts between [switch::Event]s and [button::Event]s.
 ///
@@ -36,6 +41,46 @@ pub async fn keypress_handler(
         let event = match button {
             &Button::Mod(m) | &Button::ModTap(_, m) => button::Event::PressMod(m),
             &Button::Key(k) => button::Event::PressKey(k),
+            &Button::Compose2(csa, a, csb, b) => {
+                let events = [
+                    button::Event::PressKey(COMPOSE_KEY),
+                    button::Event::ReleaseKey(COMPOSE_KEY),
+                    button::Event::Wait,
+                    button::Event::PressKey(a),
+                    button::Event::ReleaseKey(a),
+                    button::Event::Wait,
+                    button::Event::PressKey(b),
+                    button::Event::ReleaseKey(b),
+                    button::Event::Wait,
+                ];
+
+                for event in events {
+                    output.publish_immediate(event);
+                }
+
+                return;
+            }
+            &Button::Compose3(csa, a, csb, b, csc, c) => {
+                let events = [
+                    button::Event::PressKey(COMPOSE_KEY),
+                    button::Event::ReleaseKey(COMPOSE_KEY),
+                    button::Event::Wait,
+                    button::Event::PressKey(a),
+                    button::Event::ReleaseKey(a),
+                    button::Event::Wait,
+                    button::Event::PressKey(b),
+                    button::Event::ReleaseKey(b),
+                    button::Event::Wait,
+                    button::Event::PressKey(c),
+                    button::Event::ReleaseKey(c),
+                ];
+
+                for event in events {
+                    output.publish_immediate(event);
+                }
+
+                return;
+            }
             _ => return,
         };
         output.publish_immediate(event);
@@ -140,22 +185,16 @@ pub async fn keypress_handler(
                         // add event to queue
                         insert(queue, button);
                     }
-                    Button::Mod(..) | Button::Key(..) => {
+                    Button::Mod(..)
+                    | Button::Key(..)
+                    | Button::Compose2(..)
+                    | Button::Compose3(..) => {
                         if queue.is_empty() {
                             debug!("sending key now");
                             // otherwise, send immediately
                             slow_press(output, &button).await;
                         } else {
                             debug!("adding key to queue");
-                            // if events in queue, also add to queue
-                            insert(queue, button);
-                        }
-                    }
-                    Button::Compose(..) => {
-                        if queue.is_empty() {
-                            // otherwise, send immediately
-                            // TODO
-                        } else {
                             // if events in queue, also add to queue
                             insert(queue, button);
                         }
@@ -193,7 +232,10 @@ pub async fn keypress_handler(
                             slow_release(output, &button).await;
                         };
                     }
-                    Button::Mod(..) | Button::Key(..) => {
+                    Button::Mod(..)
+                    | Button::Key(..)
+                    | Button::Compose2(..)
+                    | Button::Compose3(..) => {
                         // if this press event was in queue, resolve all ModTaps before in queue as Mods
                         // otherwise, just resolve this
                         if let Some(position_in_queue) = position_in_queue {
@@ -208,11 +250,6 @@ pub async fn keypress_handler(
                         }
                         debug!("releasing key {button:?}");
                         slow_release(output, &button).await;
-                    }
-                    Button::Compose(..) => {
-                        // if this press event was in queue, resolve all ModTaps before in queue as Mods
-                        // otherwise, just resolve this
-                        // TODO
                     }
                     _ => {}
                 }

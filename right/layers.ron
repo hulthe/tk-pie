@@ -32,14 +32,14 @@
 		Layer(
 			buttons: [
 				// Row 1
-				Compose(O, A, None), // å
+				Compose2(Lower, O, Variable, A), // å
 				Key(D7),
 				Key(D8),
 				Key(D9),
 				Key(D0),
 
 				// Row 2
-				Compose(Apostrophe, A, None), // ä
+				Compose2(Lower, Apostrophe, Variable, A), // ä
 				ModTap(D4, RCtrl),
 				ModTap(D5, RShift),
 				ModTap(D6, RAlt),
@@ -47,7 +47,7 @@
 				Mod(RMod),
 
 				// Row 3
-				Compose(Apostrophe, A, None), // ö
+				Compose2(Lower, Apostrophe, Variable, O), // ö
 				Key(D1),
 				Key(D2),
 				Key(D3),
