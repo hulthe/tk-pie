@@ -1,8 +1,14 @@
+use core::future::pending;
+
 use embassy_time::{Duration, Instant, Timer};
 use futures::{select_biased, FutureExt};
 use tgnt::button::Button;
 
-use crate::{rgb::Rgb, util::wheel};
+use crate::{
+    rgb::Rgb,
+    usb::{UsbEvent, USB_EVENTS},
+    util::wheel,
+};
 
 use super::{Event, EventKind, KbEvents, State, SWITCH_COUNT};
 
@@ -36,7 +42,21 @@ pub(super) async fn task(mut events: KbEvents, state: &'static State) {
     let mut lights: [LightState; SWITCH_COUNT] = [LightState::None; SWITCH_COUNT];
     let mut next_frame = Instant::now();
     let mut idle_at = Instant::now() + UNTIL_IDLE;
+    let mut usb_enabled: bool = false;
+    let mut usb_events = USB_EVENTS
+        .subscriber()
+        .expect("USB_EVENTS: out of subscribers");
+
     loop {
+        let wait_for_idle = async {
+            if usb_enabled {
+                Timer::at(idle_at).await
+            } else {
+                // if usb is disabled, we never want to start the idle animation
+                pending().await
+            }
+        };
+
         select_biased! {
             event = events.recv().fuse() => {
                 handle_event(event, state, &mut lights).await;
@@ -46,17 +66,24 @@ pub(super) async fn task(mut events: KbEvents, state: &'static State) {
                 tick(state, &mut lights).await;
                 next_frame = Instant::now() + Duration::from_millis(16);
             }
-            _ = Timer::at(idle_at).fuse() => {
+            event = usb_events.next_message_pure().fuse() => {
+                handle_usb_event(event, &mut usb_enabled, &mut lights).await;
+                idle_at = Instant::now() + UNTIL_IDLE;
+            }
+            _ = wait_for_idle.fuse() => {
                 select_biased! {
                     event = events.recv().fuse() => {
                         state.lights.update(|lights| {
                             lights.iter_mut().for_each(|rgb| *rgb = Rgb::new(0, 0, 0));
                         }).await;
                         handle_event(event, state, &mut lights).await;
-                        idle_at = Instant::now() + UNTIL_IDLE;
+                    }
+                    event = usb_events.next_message_pure().fuse() => {
+                        handle_usb_event(event, &mut usb_enabled, &mut lights).await;
                     }
                     _ = idle_animation(state).fuse() => {}
                 }
+                idle_at = Instant::now() + UNTIL_IDLE;
             }
         }
     }
@@ -195,4 +222,32 @@ async fn handle_event(
         return;
     };
     *light = rgb;
+}
+
+async fn handle_usb_event(
+    event: UsbEvent,
+    is_enabled: &mut bool,
+    lights: &mut [LightState; SWITCH_COUNT],
+) {
+    match event {
+        UsbEvent::Suspended(false) | UsbEvent::Configured(true) => {
+            let new_state = LightState::SolidThenFade {
+                color: Rgb::new(0, 255, 0),
+                solid_until: Instant::now() + Duration::from_millis(200),
+                fade_by: 0.85,
+            };
+            lights.iter_mut().for_each(|state| *state = new_state);
+            *is_enabled = true;
+        }
+        UsbEvent::Configured(false) | UsbEvent::Suspended(true) | UsbEvent::Reset => {
+            let new_state = LightState::SolidThenFade {
+                color: Rgb::new(255, 0, 0),
+                solid_until: Instant::now() + Duration::from_millis(200),
+                fade_by: 0.85,
+            };
+            lights.iter_mut().for_each(|state| *state = new_state);
+            *is_enabled = false;
+        }
+        _ => {}
+    }
 }

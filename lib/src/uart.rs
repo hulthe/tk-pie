@@ -5,6 +5,8 @@ use crc_any::CRCu16;
 use embassy_executor::Spawner;
 use embassy_rp::peripherals::{PIN_0, PIN_1, UART0};
 use embassy_rp::uart::{self, BufferedUart, DataBits, Parity, StopBits};
+use embassy_sync::channel::Channel;
+use embassy_sync::pubsub::PubSubBehavior;
 use embedded_io_async::{Read, Write};
 use futures::{select_biased, FutureExt};
 use heapless::Vec;
@@ -14,10 +16,16 @@ use static_cell::StaticCell;
 use crate::event::{switch, Half};
 use crate::interrupts::Irqs;
 use crate::keyboard::KbEvents;
+use crate::usb::{UsbEvent, USB_EVENTS};
+use crate::util::CS;
+
+/// Channel for [UsbEvent]s to be sent on the uart line.
+pub static UART_USB_EVENTS_OUT: Channel<CS, UsbEvent, 8> = Channel::new();
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum Message {
     KeyboardEvent(switch::Event),
+    UsbEvent(UsbEvent),
 }
 
 pub async fn start(tx: PIN_0, rx: PIN_1, uart: UART0, board: Half, events: KbEvents) {
@@ -106,6 +114,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
 
                     match &message {
                         Message::KeyboardEvent(event) => events_tx.send(event.clone()),
+                        &Message::UsbEvent(event) => USB_EVENTS.publish_immediate(event),
                     }
 
                     log::info!("got msg: {:?}", message);
@@ -130,14 +139,19 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
     let tx_task = async {
         let mut buf = [0u8; 256 + HEADER_LEN];
         let mut counter = 0u8;
-        loop {
-            // forward messages to the other keyboard half
-            let event = events_rx.recv().await;
-            if event.source != this_half {
-                continue; // do not forward messages from the other half back to it
-            }
 
-            let message = Message::KeyboardEvent(event);
+        // forward messages to the other keyboard half
+        loop {
+            let message = select_biased! {
+                event = events_rx.recv().fuse() => {
+                    if event.source != this_half {
+                        continue; // do not forward messages from the other half back to it
+                    }
+                    Message::KeyboardEvent(event)
+                }
+                event = UART_USB_EVENTS_OUT.receive().fuse() => Message::UsbEvent(event),
+            };
+
             let (buf_header, body) = buf.split_array_mut();
             let serialized = match postcard::to_slice(&message, body) {
                 Ok(s) => s,

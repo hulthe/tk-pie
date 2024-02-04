@@ -10,7 +10,7 @@ extern crate cortex_m_rt;
 use alloc::vec::Vec;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::{Level, Output, Pin};
-use embassy_time::{Duration, Timer};
+use embassy_time::Timer;
 use log::error;
 use tangentbord1::{
     board::Board,
@@ -19,7 +19,7 @@ use tangentbord1::{
     keyboard::KeyboardConfig,
     logger::Logger,
     rgb::Rgb,
-    util::{stall, wheel},
+    util::stall,
     ws2812::Ws2812,
     {allocator, rtt, uart, usb},
 };
@@ -101,10 +101,16 @@ async fn main(_spawner: Spawner) {
     uart::start(board.tx, board.rx, board.UART0, half, events2).await;
 
     usb::setup_logger_and_keyboard(board.USB, events1).await;
-    neopixel.write(&[Rgb::new(0x00, 0x00, 0xFF)]).await;
 
-    for w in 0usize.. {
-        neopixel.write(&[wheel(w as u8) * 0.15]).await;
-        Timer::after(Duration::from_millis(10)).await;
+    neopixel.write(&[Rgb::new(0x00, 0x00, 0xFF)]).await;
+    Timer::after_secs(5).await;
+
+    for b in (0u8..0xff).rev() {
+        neopixel.write(&[Rgb::new(0, 0, b)]).await;
+        Timer::after_millis(10).await;
+    }
+
+    loop {
+        Timer::after_secs(5).await;
     }
 }

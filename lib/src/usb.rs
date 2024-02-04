@@ -1,14 +1,28 @@
 use embassy_executor::Spawner;
 use embassy_rp::{peripherals::USB, usb::Driver};
-use embassy_usb::{Builder, Config, UsbDevice};
+use embassy_sync::pubsub::{PubSubBehavior, PubSubChannel};
+use embassy_usb::{Builder, Config, Handler, UsbDevice};
+use serde::{Deserialize, Serialize};
 use static_cell::StaticCell;
 
-use crate::{interrupts::Irqs, keyboard::KbEvents};
+use crate::{interrupts::Irqs, keyboard::KbEvents, uart::UART_USB_EVENTS_OUT, util::CS};
 
 pub mod keyboard;
 pub mod logger;
 
 pub const MAX_PACKET_SIZE: u8 = 64;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum UsbEvent {
+    Enabled(bool),
+    Suspended(bool),
+    Configured(bool),
+    Addressed(u8),
+    Reset,
+}
+
+pub type UsbEventChannel = PubSubChannel<CS, UsbEvent, 8, 24, 0>;
+pub static USB_EVENTS: UsbEventChannel = UsbEventChannel::new();
 
 struct State {
     device_descriptor: [u8; 256],
@@ -16,12 +30,14 @@ struct State {
     bos_descriptor: [u8; 256],
     msos_descriptor: [u8; 256],
     control_buf: [u8; 64],
+    handler: UsbHandler,
 }
 
 static STATE: StaticCell<State> = StaticCell::new();
 
 pub async fn setup_logger_and_keyboard(usb: USB, events: KbEvents) {
     let mut builder = builder(usb);
+
     //logger::setup(&mut builder).await;
 
     keyboard::setup(&mut builder, events).await;
@@ -41,6 +57,7 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
         bos_descriptor: [0; 256],
         msos_descriptor: [0; 256],
         control_buf: [0; 64],
+        handler: UsbHandler,
     });
 
     // Create embassy-usb Config
@@ -60,7 +77,7 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
 
     let driver = Driver::new(usb, Irqs);
 
-    Builder::new(
+    let mut builder = Builder::new(
         driver,
         config,
         &mut state.device_descriptor,
@@ -68,11 +85,49 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
         &mut state.bos_descriptor,
         &mut state.msos_descriptor,
         &mut state.control_buf,
-    )
+    );
+
+    builder.handler(&mut state.handler);
+
+    builder
 }
 
 #[embassy_executor::task]
 pub async fn run(mut device: UsbDevice<'static, Driver<'static, USB>>) {
     log::info!("running usb device");
     device.run().await
+}
+
+struct UsbHandler;
+
+impl Handler for UsbHandler {
+    fn enabled(&mut self, enabled: bool) {
+        USB_EVENTS.publish_immediate(UsbEvent::Enabled(enabled));
+        let _ = UART_USB_EVENTS_OUT.try_send(UsbEvent::Enabled(enabled));
+        log::debug!("usb enabled({enabled})");
+    }
+
+    fn reset(&mut self) {
+        USB_EVENTS.publish_immediate(UsbEvent::Reset);
+        let _ = UART_USB_EVENTS_OUT.try_send(UsbEvent::Reset);
+        log::debug!("usb reset()");
+    }
+
+    fn addressed(&mut self, addr: u8) {
+        USB_EVENTS.publish_immediate(UsbEvent::Addressed(addr));
+        let _ = UART_USB_EVENTS_OUT.try_send(UsbEvent::Addressed(addr));
+        log::debug!("usb addressed({addr})");
+    }
+
+    fn configured(&mut self, configured: bool) {
+        USB_EVENTS.publish_immediate(UsbEvent::Configured(configured));
+        let _ = UART_USB_EVENTS_OUT.try_send(UsbEvent::Configured(configured));
+        log::debug!("usb configured({configured})");
+    }
+
+    fn suspended(&mut self, suspended: bool) {
+        USB_EVENTS.publish_immediate(UsbEvent::Suspended(suspended));
+        let _ = UART_USB_EVENTS_OUT.try_send(UsbEvent::Suspended(suspended));
+        log::debug!("usb suspended({suspended})");
+    }
 }
