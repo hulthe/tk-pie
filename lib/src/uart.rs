@@ -78,7 +78,7 @@ async fn uart_task(uart: BufferedUart<'static, UART0>, this_half: Half, mut even
         let mut buf: heapless::Vec<u8, 1024> = Vec::new();
         loop {
             if buf.len() >= HEADER_LEN {
-                let (&header, rest) = buf.split_array_ref::<HEADER_LEN>();
+                let (&header, rest) = buf.split_first_chunk::<HEADER_LEN>().unwrap();
                 let header: Header = cast(header);
                 let crc = u16::from_le_bytes(header.crc);
                 let mut calculated_crc = CRCu16::crc16();
