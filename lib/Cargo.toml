@@ -37,6 +37,8 @@ critical-section = "1.1.1"
 crc-any = "2.4.3"
 serde = { version = "1.0.163", default-features = false, features = ["derive"] }
 bytemuck = { version = "1.13.1", features = ["derive"] }
+libm = "0.2.8"
+glam = { version = "0.25.0", default-features = false, features = ["libm"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 embassy-executor = { version = "0.5.0", features = ["arch-std"] }

@@ -15,6 +15,20 @@ impl Rgb {
         Self(u32::from_be_bytes([g, r, b, 0]))
     }
 
+    pub fn from_f64s(r: f64, g: f64, b: f64) -> Self {
+        let r = r.clamp(0.0, 1.0) * 255.0;
+        let g = g.clamp(0.0, 1.0) * 255.0;
+        let b = b.clamp(0.0, 1.0) * 255.0;
+        Self::new(r as u8, g as u8, b as u8)
+    }
+
+    pub fn from_f32s(r: f32, g: f32, b: f32) -> Self {
+        let r = r.clamp(0.0, 1.0) * 255.0;
+        let g = g.clamp(0.0, 1.0) * 255.0;
+        let b = b.clamp(0.0, 1.0) * 255.0;
+        Self::new(r as u8, g as u8, b as u8)
+    }
+
     /// Get the red, green, and blue components of this Rgb.
     #[inline(always)]
     pub const fn components(&self) -> [u8; 3] {

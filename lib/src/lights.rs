@@ -1,3 +1,5 @@
+pub mod shaders;
+
 use crate::ws2812::Ws2812;
 use embassy_rp::pio;
 use embassy_sync::mutex::Mutex;

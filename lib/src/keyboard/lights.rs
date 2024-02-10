@@ -5,9 +5,9 @@ use futures::{select_biased, FutureExt};
 use tgnt::button::Button;
 
 use crate::{
+    lights::shaders::{LsdHyperspace, OrthoRainbow, PowerOffAnim, PowerOnAnim, Shader, Shaders},
     rgb::Rgb,
     usb::{UsbEvent, USB_EVENTS},
-    util::wheel,
 };
 
 use super::{Event, EventKind, KbEvents, State, SWITCH_COUNT};
@@ -15,83 +15,160 @@ use super::{Event, EventKind, KbEvents, State, SWITCH_COUNT};
 /// Duration until the keyboard starts the idle animation
 const UNTIL_IDLE: Duration = Duration::from_secs(30);
 
-///// Duration from idle until the keyboard goes to sleep
-//const UNTIL_SLEEP: Duration = Duration::from_secs(10);
+/// DUration between each animation frame.
+const FRAMETIME: Duration = Duration::from_millis(16);
 
-const IDLE_ANIMATION_SPEED: u64 = 3;
-const IDLE_ANIMATION_KEY_OFFSET: u64 = 10;
-const IDLE_BRIGHTNESS_RAMPUP: Duration = Duration::from_secs(120);
-const MAX_IDLE_BRIGHTESS: f32 = 0.2;
-const MIN_IDLE_BRIGHTESS: f32 = 0.05;
-
-#[derive(Clone, Copy)]
-enum LightState {
-    Solid(Rgb),
-    #[allow(dead_code)]
-    SolidThenFade {
-        color: Rgb,
-        solid_until: Instant,
-        fade_by: f32,
+#[derive(Default)]
+enum LightsState {
+    Active {
+        keys: [KeyLedState; SWITCH_COUNT],
+        next_frame: Instant,
+        idle_at: Instant,
     },
-    FadeBy(f32),
-    None,
+    PoweringOff(PowerOffAnim),
+    PoweringOn(PowerOnAnim),
+    #[default]
+    PoweredOff,
+    Idle(Shaders),
 }
 
-#[embassy_executor::task]
-pub(super) async fn task(mut events: KbEvents, state: &'static State) {
-    let mut lights: [LightState; SWITCH_COUNT] = [LightState::None; SWITCH_COUNT];
-    let mut next_frame = Instant::now();
-    let mut idle_at = Instant::now() + UNTIL_IDLE;
-    let mut usb_enabled: bool = false;
-    let mut usb_events = USB_EVENTS
-        .subscriber()
-        .expect("USB_EVENTS: out of subscribers");
-
-    loop {
-        let wait_for_idle = async {
-            if usb_enabled {
-                Timer::at(idle_at).await
-            } else {
-                // if usb is disabled, we never want to start the idle animation
-                pending().await
-            }
-        };
-
-        select_biased! {
-            event = events.recv().fuse() => {
-                handle_event(event, state, &mut lights).await;
-                idle_at = Instant::now() + UNTIL_IDLE;
-            }
-            _ = Timer::at(next_frame).fuse() => {
-                tick(state, &mut lights).await;
-                next_frame = Instant::now() + Duration::from_millis(16);
-            }
-            event = usb_events.next_message_pure().fuse() => {
-                handle_usb_event(event, &mut usb_enabled, &mut lights).await;
-                idle_at = Instant::now() + UNTIL_IDLE;
-            }
-            _ = wait_for_idle.fuse() => {
-                select_biased! {
-                    event = events.recv().fuse() => {
-                        state.lights.update(|lights| {
-                            lights.iter_mut().for_each(|rgb| *rgb = Rgb::new(0, 0, 0));
-                        }).await;
-                        handle_event(event, state, &mut lights).await;
-                    }
-                    event = usb_events.next_message_pure().fuse() => {
-                        handle_usb_event(event, &mut usb_enabled, &mut lights).await;
-                    }
-                    _ = idle_animation(state).fuse() => {}
-                }
-                idle_at = Instant::now() + UNTIL_IDLE;
-            }
+impl LightsState {
+    pub fn active_default() -> Self {
+        let now = Instant::now();
+        LightsState::Active {
+            keys: Default::default(),
+            next_frame: now,
+            idle_at: now + UNTIL_IDLE,
         }
     }
 }
 
-async fn tick(state: &'static State, lights: &mut [LightState; SWITCH_COUNT]) {
-    let now = Instant::now();
+#[derive(Clone, Copy, Default)]
+enum KeyLedState {
+    #[default]
+    None,
+    Solid(Rgb),
+    FadeBy(f32),
+}
 
+#[embassy_executor::task]
+pub(super) async fn task(mut events: KbEvents, state: &'static State) {
+    let mut lights = LightsState::default();
+    let mut usb_events = USB_EVENTS
+        .dyn_subscriber()
+        .expect("USB_EVENTS: out of subscribers");
+
+    loop {
+        match &mut lights {
+            LightsState::Active {
+                keys,
+                next_frame,
+                idle_at,
+            } => {
+                select_biased! {
+                    event = events.recv().fuse() => {
+                        *idle_at = Instant::now() + UNTIL_IDLE;
+                        handle_event(event, state, keys).await;
+                    }
+                    ev = usb_events.next_message_pure().fuse() => {
+                        *idle_at = Instant::now() + UNTIL_IDLE;
+                        handle_usb_event(ev, &mut lights).await;
+                    }
+                    _ = Timer::at(*idle_at).fuse() => lights = LightsState::Idle(Shaders::LsdHyperspace(LsdHyperspace)),
+                    _ = Timer::at(*next_frame).fuse() => {
+                        keypress_tick(state, keys).await;
+                        *next_frame = Instant::now() + FRAMETIME;
+                    }
+                }
+            }
+            LightsState::PoweringOff(anim) => {
+                select_biased! {
+                    ev = usb_events.next_message_pure().fuse() => handle_usb_event(ev, &mut lights).await,
+                    _ = play_shader(state, anim).fuse() => lights = LightsState::PoweredOff,
+                }
+            }
+            LightsState::PoweringOn(anim) => {
+                select_biased! {
+                    ev = usb_events.next_message_pure().fuse() => handle_usb_event(ev, &mut lights).await,
+                    _ = play_shader(state, anim).fuse() => lights = LightsState::active_default(),
+                }
+            }
+            LightsState::PoweredOff => {
+                let ev = usb_events.next_message_pure().await;
+                handle_usb_event(ev, &mut lights).await;
+            }
+            LightsState::Idle(anim) => {
+                select_biased! {
+                    ev = usb_events.next_message_pure().fuse() => handle_usb_event(ev, &mut lights).await,
+                    event = events.recv().fuse() => {
+                        let now = Instant::now();
+                        let mut keys = Default::default();
+                        handle_event(event, state, &mut keys).await;
+                        lights = LightsState::Active { keys, next_frame: now, idle_at: now + UNTIL_IDLE};
+                    }
+                    _ = play_shader(state, anim).fuse() => {}
+                }
+            }
+        };
+    }
+}
+
+async fn play_shader(state: &'static State, shader: &impl Shader) {
+    const SWITCH_COORDS: [(u16, u16); SWITCH_COUNT] = [
+        (0, 1),
+        (1, 1),
+        (2, 1),
+        (3, 1),
+        (4, 1),
+        (4, 2),
+        (3, 2),
+        (2, 2),
+        (1, 2),
+        (0, 2),
+        (0, 3),
+        (1, 3),
+        (2, 3),
+        (3, 3),
+        (4, 3),
+        (2, 4),
+        (3, 4),
+        (4, 4),
+    ];
+
+    const BRIGHTNESS: f32 = 0.15;
+
+    let switch_coords = SWITCH_COORDS.map(|(x, y)| (f32::from(x) / 4.0, f32::from(y) / 4.0));
+
+    let animate_shader = async {
+        loop {
+            let now = Instant::now();
+
+            state
+                .lights
+                .update(|rgbs| {
+                    (switch_coords.into_iter().zip(rgbs.iter_mut()))
+                        .for_each(|(uv, rgb)| *rgb = shader.sample(now, uv) * BRIGHTNESS)
+                })
+                .await;
+
+            Timer::after(FRAMETIME).await;
+        }
+    };
+
+    let end_animation = async {
+        match shader.end_time() {
+            Some(end_time) => Timer::at(end_time).await,
+            None => pending().await,
+        };
+    };
+
+    select_biased! {
+        _ = animate_shader.fuse() => {}
+        _ = end_animation.fuse() => {}
+    }
+}
+
+async fn keypress_tick(state: &'static State, lights: &mut [KeyLedState; SWITCH_COUNT]) {
     state
         .lights
         .update(|rgbs| {
@@ -104,114 +181,40 @@ async fn tick(state: &'static State, lights: &mut [LightState; SWITCH_COUNT]) {
                 };
 
                 match &*light {
-                    LightState::None => {}
-                    LightState::FadeBy(fade) => {
+                    KeyLedState::None => *rgb = Rgb::new(0, 0, 0),
+                    KeyLedState::FadeBy(fade) => {
                         let [r, g, b] = rgb
                             .components()
                             .map(|c| ((c as f32) * fade.clamp(0.0, 1.0)) as u8);
                         *rgb = Rgb::new(r, g, b);
                         if *rgb == Rgb::new(0, 0, 0) {
-                            *light = LightState::None;
+                            *light = KeyLedState::None;
                         }
                     }
-                    &LightState::Solid(color) => *rgb = color,
-                    &LightState::SolidThenFade {
-                        color,
-                        solid_until,
-                        fade_by,
-                    } => {
-                        *rgb = color;
-                        if now >= solid_until {
-                            *light = LightState::FadeBy(fade_by);
-                        }
-                    }
+                    &KeyLedState::Solid(color) => *rgb = color,
                 }
             }
         })
         .await;
 }
 
-async fn idle_animation(state: &'static State) {
-    for tick in 0.. {
-        const FRAMETIME: Duration = Duration::from_millis(16);
-
-        state
-            .lights
-            .update(|lights| {
-                const N_MAX: u64 = IDLE_BRIGHTNESS_RAMPUP.as_millis() / FRAMETIME.as_millis();
-
-                let brightness = if tick >= N_MAX {
-                    MAX_IDLE_BRIGHTESS
-                } else {
-                    ((tick as f32) / N_MAX as f32).clamp(MIN_IDLE_BRIGHTESS, MAX_IDLE_BRIGHTESS)
-                };
-
-                for (n, &i) in state.led_map.iter().enumerate() {
-                    let Some(light) = lights.get_mut(i) else {
-                        continue;
-                    };
-                    let rgb = wheel(
-                        (n as u64 * IDLE_ANIMATION_KEY_OFFSET + tick * IDLE_ANIMATION_SPEED) as u8,
-                    );
-                    *light = rgb * brightness;
-                }
-            })
-            .await;
-
-        Timer::after(FRAMETIME).await;
-    }
-}
-
 async fn handle_event(
     event: Event,
     state: &'static State,
-    lights: &mut [LightState; SWITCH_COUNT],
+    lights: &mut [KeyLedState; SWITCH_COUNT],
 ) {
     let rgb = match event.kind {
         EventKind::Press { button } => match button {
-            Button::Key(..) => LightState::Solid(Rgb::new(0, 150, 0)),
-            Button::Mod(..) => LightState::Solid(Rgb::new(0, 0, 150)),
-            Button::ModTap(..) => LightState::Solid(Rgb::new(0, 0, 150)),
-            Button::Compose2(..) | Button::Compose3(..) => LightState::Solid(Rgb::new(0, 100, 100)),
-            Button::Layer(..) => LightState::Solid(Rgb::new(120, 0, 120)),
-            /*
-            Button::NextLayer | Button::PrevLayer => {
-                yield_now().await; // dirty hack to make sure layer_switch_task gets to run first
-                let layer = state.current_layer.load(Ordering::Relaxed);
-                let layer = min(layer, state.layers.len().saturating_sub(1) as u16);
-                let buttons_to_light_up = if state.layers.len() <= 3 {
-                    match layer {
-                        0 => [0, 1, 2, 3, 4].as_ref(),
-                        1 => &[5, 6, 7, 8, 9],
-                        2 => &[10, 11, 12, 13, 14],
-                        _ => &[],
-                    }
-                } else {
-                    match layer {
-                        0 => [0, 5, 10].as_ref(),
-                        1 => &[1, 6, 11],
-                        2 => &[2, 7, 12],
-                        3 => &[3, 8, 13],
-                        4 => &[4, 9, 14],
-                        _ => &[],
-                    }
-                };
-
-                let solid_until = Instant::now() + Duration::from_millis(200);
-                for &button in buttons_to_light_up {
-                    let Some(light) = lights.get_mut(button) else { continue; };
-                    *light = LightState::SolidThenFade {
-                        color: Rgb::new(120, 0, 120),
-                        solid_until,
-                        fade_by: 0.85,
-                    }
-                }
-                LightState::Solid(Rgb::new(100, 0, 100))
+            Button::Key(..) => KeyLedState::Solid(Rgb::new(0, 150, 0)),
+            Button::Mod(..) => KeyLedState::Solid(Rgb::new(0, 0, 150)),
+            Button::ModTap(..) => KeyLedState::Solid(Rgb::new(0, 0, 150)),
+            Button::Compose2(..) | Button::Compose3(..) => {
+                KeyLedState::Solid(Rgb::new(0, 100, 100))
             }
-            */
-            _ => LightState::Solid(Rgb::new(150, 0, 0)),
+            Button::Layer(..) => KeyLedState::Solid(Rgb::new(120, 0, 120)),
+            _ => KeyLedState::Solid(Rgb::new(150, 0, 0)),
         },
-        EventKind::Release { .. } => LightState::FadeBy(0.85),
+        EventKind::Release { .. } => KeyLedState::FadeBy(0.85),
     };
 
     if event.source != state.half {
@@ -224,30 +227,19 @@ async fn handle_event(
     *light = rgb;
 }
 
-async fn handle_usb_event(
-    event: UsbEvent,
-    is_enabled: &mut bool,
-    lights: &mut [LightState; SWITCH_COUNT],
-) {
-    match event {
-        UsbEvent::Suspended(false) | UsbEvent::Configured(true) => {
-            let new_state = LightState::SolidThenFade {
-                color: Rgb::new(0, 255, 0),
-                solid_until: Instant::now() + Duration::from_millis(200),
-                fade_by: 0.85,
-            };
-            lights.iter_mut().for_each(|state| *state = new_state);
-            *is_enabled = true;
-        }
-        UsbEvent::Configured(false) | UsbEvent::Suspended(true) | UsbEvent::Reset => {
-            let new_state = LightState::SolidThenFade {
-                color: Rgb::new(255, 0, 0),
-                solid_until: Instant::now() + Duration::from_millis(200),
-                fade_by: 0.85,
-            };
-            lights.iter_mut().for_each(|state| *state = new_state);
-            *is_enabled = false;
-        }
-        _ => {}
-    }
+async fn handle_usb_event(event: UsbEvent, state: &mut LightsState) {
+    let usb_enabled = match event {
+        UsbEvent::Suspended(false) | UsbEvent::Configured(true) => true,
+        UsbEvent::Configured(false) | UsbEvent::Suspended(true) | UsbEvent::Reset => false,
+        _ => return,
+    };
+
+    let start = Instant::now();
+    *state = match (&state, usb_enabled) {
+        (LightsState::PoweringOn(..), true) => return,
+        (LightsState::PoweringOff(..), false) => return,
+        (LightsState::PoweredOff, false) => return,
+        (_, true) => LightsState::PoweringOn(PowerOnAnim { start }),
+        (_, false) => LightsState::PoweringOff(PowerOffAnim { start }),
+    };
 }
