@@ -5,7 +5,7 @@ use futures::{select_biased, FutureExt};
 use tgnt::button::Button;
 
 use crate::{
-    lights::shaders::{LsdHyperspace, OrthoRainbow, PowerOffAnim, PowerOnAnim, Shader, Shaders},
+    lights::shaders::{PowerOffAnim, PowerOnAnim, Shader, Shaders},
     rgb::Rgb,
     usb::{UsbEvent, USB_EVENTS},
 };
@@ -17,6 +17,8 @@ const UNTIL_IDLE: Duration = Duration::from_secs(30);
 
 /// DUration between each animation frame.
 const FRAMETIME: Duration = Duration::from_millis(16);
+
+const IDLE_ANIM: Shaders = Shaders::OrthoRainbow;
 
 #[derive(Default)]
 enum LightsState {
@@ -74,7 +76,7 @@ pub(super) async fn task(mut events: KbEvents, state: &'static State) {
                         *idle_at = Instant::now() + UNTIL_IDLE;
                         handle_usb_event(ev, &mut lights).await;
                     }
-                    _ = Timer::at(*idle_at).fuse() => lights = LightsState::Idle(Shaders::LsdHyperspace(LsdHyperspace)),
+                    _ = Timer::at(*idle_at).fuse() => lights = LightsState::Idle(IDLE_ANIM),
                     _ = Timer::at(*next_frame).fuse() => {
                         keypress_tick(state, keys).await;
                         *next_frame = Instant::now() + FRAMETIME;

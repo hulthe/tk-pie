@@ -17,22 +17,15 @@ pub trait Shader {
 }
 
 pub enum Shaders {
-    OrthoRainbow(OrthoRainbow),
-    LsdHyperspace(LsdHyperspace),
+    OrthoRainbow,
+    LsdHyperspace,
 }
 
 impl Shader for Shaders {
     fn sample(&self, time: Instant, uv: (f32, f32)) -> Rgb {
         match self {
-            Shaders::OrthoRainbow(s) => s.sample(time, uv),
-            Shaders::LsdHyperspace(s) => s.sample(time, uv),
-        }
-    }
-
-    fn end_time(&self) -> Option<Instant> {
-        match self {
-            Shaders::OrthoRainbow(s) => s.end_time(),
-            Shaders::LsdHyperspace(s) => s.end_time(),
+            Shaders::OrthoRainbow => OrthoRainbow.sample(time, uv),
+            Shaders::LsdHyperspace => LsdHyperspace.sample(time, uv),
         }
     }
 }
