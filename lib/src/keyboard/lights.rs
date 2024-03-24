@@ -2,9 +2,9 @@ use core::future::pending;
 
 use embassy_time::{Duration, Instant, Timer};
 use futures::{select_biased, FutureExt};
-use tgnt::button::Button;
 
 use crate::{
+    button::Button,
     lights::shaders::{PowerOffAnim, PowerOnAnim, Shader, Shaders},
     rgb::Rgb,
     usb::{UsbEvent, USB_EVENTS},

@@ -1,5 +1,9 @@
 #![allow(dead_code)]
 
+use crate::{button::Modifier, keys::Key};
+use bytemuck::{cast_ref, Pod, Zeroable};
+use core::mem::size_of;
+
 /// KeyboardReport describes a report and its companion descriptor that can be
 /// used to send keyboard button presses to a host and receive the status of the
 /// keyboard LEDs.
@@ -14,10 +18,6 @@ pub struct KeyboardReport {
     /// Bitmap representing all keycodes from 0 to 215
     pub keycodes: [u8; 27],
 }
-
-use bytemuck::{cast_ref, Pod, Zeroable};
-use core::mem::size_of;
-use tgnt::{button::Modifier, keys::Key};
 
 #[cfg(not(feature = "n-key-rollover"))]
 pub use ::usbd_hid::descriptor::KeyboardReport;

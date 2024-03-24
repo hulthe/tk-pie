@@ -1,17 +1,25 @@
-use core::{fmt::Write, sync::atomic::Ordering};
+use core::{fmt::Arguments, sync::atomic::Ordering};
 
-use atomic_polyfill::AtomicBool;
 use embassy_time::Instant;
-use log::{Metadata, Record};
+use log::{Level, Metadata, Record};
+use portable_atomic::AtomicBool;
 use static_cell::StaticCell;
 
-pub const LOGGER_OUTPUTS: usize = 1;
+pub const LOGGER_OUTPUTS: usize = 2;
 
-pub struct Logger {
-    pub outputs: [fn(&[u8]); LOGGER_OUTPUTS],
+/// A logger which timestamps logs and forwards them to mutiple other loggers.
+pub struct LogMultiplexer {
+    pub outputs: [&'static dyn LogOutput; LOGGER_OUTPUTS],
 }
 
-impl Logger {
+pub struct TimestampedRecord<'a> {
+    pub record: Record<'a>,
+
+    /// Timestamp
+    pub timestamp: Instant,
+}
+
+impl LogMultiplexer {
     /// Set this as the global logger.
     ///
     /// Calling this function more than once does nothing.
@@ -22,7 +30,7 @@ impl Logger {
             return;
         }
 
-        static LOGGER: StaticCell<Logger> = StaticCell::new();
+        static LOGGER: StaticCell<LogMultiplexer> = StaticCell::new();
         let logger = LOGGER.init(self);
         unsafe {
             log::set_logger_racy(logger).unwrap();
@@ -31,32 +39,43 @@ impl Logger {
     }
 }
 
-impl log::Log for Logger {
+impl log::Log for LogMultiplexer {
     fn enabled(&self, _metadata: &Metadata) -> bool {
         true
     }
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            let now = Instant::now();
-            let s = now.as_secs();
-            let ms = now.as_millis() % 1000;
-            let level = record.metadata().level();
-            let mut w = &mut Writer(self);
-            let _ = writeln!(&mut w, "[{s}.{ms:04}] ({level}) {}", record.args());
+            let timestamp = Instant::now();
+
+            let record = TimestampedRecord {
+                timestamp,
+                record: record.clone(),
+            };
+
+            for output in &self.outputs {
+                output.log(&record);
+            }
         }
     }
 
     fn flush(&self) {}
 }
 
-struct Writer<'a>(&'a Logger);
+pub trait LogOutput: Send + Sync {
+    fn log(&self, record: &TimestampedRecord);
+}
 
-impl Write for Writer<'_> {
-    fn write_str(&mut self, s: &str) -> Result<(), core::fmt::Error> {
-        for output in &self.0.outputs {
-            output(s.as_bytes());
-        }
-        Ok(())
+impl TimestampedRecord<'_> {
+    pub fn args(&self) -> &Arguments<'_> {
+        self.record.args()
+    }
+
+    pub fn level(&self) -> Level {
+        self.metadata().level()
+    }
+
+    pub fn metadata(&self) -> &Metadata<'_> {
+        self.record.metadata()
     }
 }

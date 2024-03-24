@@ -23,7 +23,7 @@ struct Writer;
 
 impl core::fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> Result<(), core::fmt::Error> {
-        rtt_write(s.as_bytes());
+        rtt_write(s);
         Ok(())
     }
 }

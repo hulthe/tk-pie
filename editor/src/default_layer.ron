@@ -1,0 +1,25 @@
+Layer(
+	buttons: [
+		Keycode(0x04),
+		Keycode(0x05),
+		Keycode(0x06),
+		Keycode(0x07),
+		Keycode(0x08),
+
+		Keycode(0x09),
+		Keycode(0x0A),
+		Keycode(0x0B),
+		Keycode(0x0C),
+		Keycode(0x0D),
+
+		Keycode(0x0E),
+		Keycode(0x0F),
+		Keycode(0x10),
+		Keycode(0x11),
+		ModTap( keycode: 0x12, modifier: LMod),
+
+		Modifier(LShift),
+		Modifier(LCtrl),
+		NextLayer,
+	],
+)

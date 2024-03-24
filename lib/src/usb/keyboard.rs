@@ -218,6 +218,7 @@ async fn write_reports(mut stream: HidStream, ctx: &'static Context) -> Result<(
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum Error {
     Read(ReadError),
     Endpoint(EndpointError),

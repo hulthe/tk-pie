@@ -7,8 +7,10 @@ use static_cell::StaticCell;
 
 use crate::{interrupts::Irqs, keyboard::KbEvents, uart::UART_USB_EVENTS_OUT, util::CS};
 
+use self::serial::UsbSerial;
+
 pub mod keyboard;
-pub mod logger;
+pub mod serial;
 
 pub const MAX_PACKET_SIZE: u8 = 64;
 
@@ -35,17 +37,18 @@ struct State {
 
 static STATE: StaticCell<State> = StaticCell::new();
 
-pub async fn setup_logger_and_keyboard(usb: USB, events: KbEvents) {
+pub async fn setup_logger_and_keyboard(usb: USB, events: KbEvents) -> &'static UsbSerial {
     let mut builder = builder(usb);
 
-    //logger::setup(&mut builder).await;
-
+    let usb_serial = serial::setup(&mut builder).await;
     keyboard::setup(&mut builder, events).await;
 
     log::info!("building usb device");
     let usb = builder.build();
     log::info!("spawning usb task");
     Spawner::for_current_executor().await.must_spawn(run(usb));
+
+    usb_serial
 }
 
 pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {

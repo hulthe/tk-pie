@@ -10,7 +10,6 @@ path = "../lib"
 package = "tangentbord1-lib"
 
 [dependencies]
-tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
 cortex-m-rt = "0.7"
 embassy-rp = { version = "0.1.0", features = ["time-driver", "critical-section-impl"] }
 embassy-executor = { version = "0.5.0", features = ["nightly", "executor-thread", "integrated-timers", "arch-cortex-m"] }
@@ -21,6 +20,9 @@ log = "0.4.17"
 postcard = { version = "1.0.4", features = ["alloc"] }
 
 [build-dependencies]
-tgnt = { git = "https://git.nubo.sh/hulthe/tgnt.git", default-features = false }
 ron = "0.8.0"
 postcard = { version = "1", features = ["use-std"] }
+
+[build-dependencies.tangentbord1]
+path = "../lib"
+package = "tangentbord1-lib"

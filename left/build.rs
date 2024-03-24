@@ -13,7 +13,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::{env, fs};
 
-use tgnt::layer::Layer;
+use tangentbord1::layer::Layer;
 
 fn main() {
     memory();

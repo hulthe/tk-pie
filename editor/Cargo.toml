@@ -1,0 +1,22 @@
+[package]
+name = "editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.tangentbord1]
+path = "../lib"
+package = "tangentbord1-lib"
+features = ["std"]
+
+[dependencies]
+clap = { version = "4.5.1", features = ["derive"] }
+eframe = { version = "0.26.2", features = ["persistence", "ron", "serde"] }
+egui = { version = "0.26.2", features = ["persistence", "ron", "serde"] }
+egui_extras = { version = "0.26.2" }
+msgpck = { version = "0.2.8", features = ["alloc"] }
+eyre = "0.6.12"
+log = "0.4.20"
+pretty_env_logger = "0.5.0"
+ron = { version = "0.8.0" }
+serde = { version = "1.0.156", features = ["derive"] }
+tokio = { version = "1.36.0", features = ["full"] }

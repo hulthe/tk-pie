@@ -1,7 +1,6 @@
+use crate::{button::Button, keys::Key};
 use core::time::Duration;
-
 use serde::{Deserialize, Serialize};
-use tgnt::{button::Button, keys::Key};
 
 pub mod switch {
     use super::*;
@@ -35,9 +34,8 @@ pub mod switch {
 }
 
 pub mod button {
-    use tgnt::button::Modifier;
-
     use super::*;
+    use crate::button::Modifier;
 
     /// A usb keyboard button was pressed or released.
     ///

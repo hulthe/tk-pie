@@ -1,11 +1,9 @@
-[patch.'https://git.nubo.sh/hulthe/tgnt.git'.tgnt]
-path = "../tgnt"
-
 [workspace]
 members = [
     "lib",
     "left",
     "right",
+    "editor",
 ]
 
 resolver = "2"

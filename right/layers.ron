@@ -93,25 +93,25 @@
 		Layer(
 			buttons: [
 				// Row 1
-				None,
-				None,
-				None,
-				None,
-				None,
+				Key(Y),
+				Key(U),
+				Key(I),
+				Key(O),
+				Key(P),
 
 				// Row 2
-				None,
-				None,
-				None,
-				None,
-				None,
+				Key(H),
+				Key(J),
+				Key(K),
+				Key(L),
+				Key(G),
 
 				// Row 3
-				None,
-				None,
-				None,
-				None,
-				None,
+				Key(B),
+				Key(N),
+				Key(M),
+				Key(Comma),
+				Key(Period),
 
 				// Thumbpad
 				Layer(Peek, Right, 1),
@@ -124,8 +124,8 @@
 				// Row 1
 				None,
 				None,
-				None,
-				None,
+				Key(CapsLock),
+				Key(Tab),
 				None,
 
 				// Row 2

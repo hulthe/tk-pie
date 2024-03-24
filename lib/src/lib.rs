@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![feature(type_alias_impl_trait)]
 #![feature(split_array)]
 
@@ -24,10 +24,15 @@ pub mod usb;
 pub mod ws2812;
 
 pub mod atomics;
+pub mod button;
 pub mod event;
 pub mod keypress_handler;
+pub mod keys;
+pub mod layer;
+pub mod layout;
 pub mod logger;
 pub mod neopixel;
 pub mod rgb;
 pub mod rtt;
+pub mod serial_proto;
 pub mod util;

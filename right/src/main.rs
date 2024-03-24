@@ -17,29 +17,19 @@ use tangentbord1::{
     event::Half,
     interrupts::Irqs,
     keyboard::KeyboardConfig,
-    logger::Logger,
+    layer::Layer,
+    logger::LogMultiplexer,
     rgb::Rgb,
     util::stall,
     ws2812::Ws2812,
     {allocator, rtt, uart, usb},
 };
-use tgnt::layer::Layer;
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
     let half = Half::Right;
 
-    let rtt_write = rtt::init_rtt_logger();
-    let logger = Logger {
-        outputs: [rtt_write],
-    };
-    logger.init();
-
-    log::error!("log_level: error");
-    log::warn!("log_level: warn");
-    log::info!("log_level: info");
-    log::debug!("log_level: debug");
-    log::trace!("log_level: trace");
+    let rtt_logger = rtt::init_rtt_logger();
 
     allocator::init();
 
@@ -100,7 +90,19 @@ async fn main(_spawner: Spawner) {
 
     uart::start(board.tx, board.rx, board.UART0, half, events2).await;
 
-    usb::setup_logger_and_keyboard(board.USB, events1).await;
+    // TODO: delaying the logger until here is not ideal
+    let usb_logger = usb::setup_logger_and_keyboard(board.USB, events1).await;
+
+    let logger = LogMultiplexer {
+        outputs: [rtt_logger, usb_logger],
+    };
+    logger.init();
+
+    log::error!("log_level: error");
+    log::warn!("log_level: warn");
+    log::info!("log_level: info");
+    log::debug!("log_level: debug");
+    log::trace!("log_level: trace");
 
     neopixel.write(&[Rgb::new(0x00, 0x00, 0xFF)]).await;
     Timer::after_secs(5).await;
@@ -110,7 +112,5 @@ async fn main(_spawner: Spawner) {
         Timer::after_millis(10).await;
     }
 
-    loop {
-        Timer::after_secs(5).await;
-    }
+    stall().await
 }

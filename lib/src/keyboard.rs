@@ -2,7 +2,7 @@ mod lights;
 
 use core::sync::atomic::Ordering;
 
-use alloc::{boxed::Box, vec::Vec};
+use alloc::vec::Vec;
 use embassy_executor::Spawner;
 use embassy_rp::{
     gpio::{AnyPin, Input, Pin, Pull},
@@ -12,19 +12,22 @@ use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
 use embassy_time::{Duration, Instant, Timer};
 use log::{debug, error, info, warn};
 use static_cell::StaticCell;
-use tgnt::{
-    button::{Button, LayerDir, LayerShift},
-    layer::Layer,
-};
 
 use crate::{
     atomics::AtomicCoord,
+    button::{Button, LayerDir, LayerShift},
     event::{
         switch::{Event, EventKind},
         Half,
     },
+    layer::{Layer, Layers},
     lights::Lights,
-    util::CS,
+    serial_proto::{
+        borrowed::DeviceMsg,
+        owned::{ChangeLayer, SwitchPress, SwitchRelease},
+    },
+    usb::serial::serial_send,
+    util::{SwapCell, SwapCellRead, CS},
     ws2812::Ws2812,
 };
 
@@ -45,7 +48,8 @@ struct State {
     half: Half,
     current_layer: AtomicCoord,
     layer_cols: usize,
-    layers: &'static [Vec<Layer>],
+    layer_rows: usize,
+    layers: SwapCellRead<Layers>,
     /// Array of LED indices of each switch
     led_map: [usize; SWITCH_COUNT],
     lights: Lights<PIO1, SWITCH_COUNT>,
@@ -89,17 +93,7 @@ impl KeyboardConfig {
             self.layers.len()
         );
 
-        static STATE: StaticCell<State> = StaticCell::new();
-        let state = STATE.init_with(|| State {
-            half: self.half,
-            current_layer: AtomicCoord::new(),
-            layer_cols: self.layers.iter().map(|row| row.len()).max().unwrap_or(0),
-            layers: Box::leak(self.layers.into_boxed_slice()),
-            lights: Lights::new(self.led_driver),
-            led_map: self.led_map,
-        });
-
-        for (y, row) in state.layers.iter().enumerate() {
+        for (y, row) in self.layers.iter().enumerate() {
             for (x, layer) in row.iter().enumerate() {
                 if layer.buttons.len() != SWITCH_COUNT {
                     warn!(
@@ -109,6 +103,24 @@ impl KeyboardConfig {
                 }
             }
         }
+
+        let layer_cols = self.layers.iter().map(|row| row.len()).max().unwrap_or(0);
+        let layer_rows = self.layers.len();
+
+        static LAYERS: StaticCell<SwapCell<Layers>> = StaticCell::new();
+        let layers = LAYERS.init_with(|| SwapCell::new(self.layers));
+        let (layers_read, layers_write) = layers.split();
+
+        static STATE: StaticCell<State> = StaticCell::new();
+        let state = STATE.init_with(|| State {
+            half: self.half,
+            current_layer: AtomicCoord::new(),
+            layer_cols,
+            layer_rows,
+            layers: layers_read,
+            lights: Lights::new(self.led_driver),
+            led_map: self.led_map,
+        });
 
         for (i, pin) in self.pins.into_iter().enumerate() {
             if spawner.spawn(switch_task(i, pin, state)).is_err() {
@@ -200,8 +212,8 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
         // get current layer
         let (x, y) = state.current_layer.load(Ordering::Relaxed);
 
-        let Some(Layer { buttons }) = state
-            .layers
+        let layers = state.layers.read();
+        let Some(Layer { buttons }) = layers
             .get(usize::from(y))
             .and_then(|row| row.get(usize::from(x)))
         else {
@@ -210,14 +222,18 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
             continue;
         };
 
+        let button = buttons.get(switch_num).cloned();
+        drop(layers);
+
         // and current button
-        let Some(button) = buttons.get(switch_num) else {
+        let Some(button) = button else {
             warn!("no button defined for switch {switch_num}");
             pin.wait_for_high().await;
             continue;
         };
 
         debug!("switch {switch_num} button {button:?} pressed");
+        serial_send(&DeviceMsg::SwitchPress(SwitchPress(switch_num as u16)));
 
         let ev = |kind| Event {
             source: state.half,
@@ -234,6 +250,7 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
         let released_after = pressed_at.elapsed();
 
         debug!("switch {switch_num} button {button:?} released");
+        serial_send(&DeviceMsg::SwitchRelease(SwitchRelease(switch_num as u16)));
 
         events.publish_immediate(ev(EventKind::Release {
             button: button.clone(),
@@ -247,7 +264,7 @@ async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> !
 #[embassy_executor::task]
 async fn layer_switch_task(mut events: KbEvents, state: &'static State) {
     let col_count = state.layer_cols as u16;
-    let row_count = state.layers.len() as u16;
+    let row_count = state.layer_rows as u16;
     let Some(last_row) = row_count.checked_sub(1) else {
         error!("no layers specified");
         return;
@@ -282,6 +299,7 @@ async fn layer_switch_task(mut events: KbEvents, state: &'static State) {
         };
 
         state.current_layer.store(nx, ny, Ordering::Relaxed);
+        serial_send(&DeviceMsg::ChangeLayer(ChangeLayer { x: nx, y: ny }));
         debug!("switched to layer ({nx}, {ny})");
     }
 }
@@ -289,7 +307,7 @@ async fn layer_switch_task(mut events: KbEvents, state: &'static State) {
 /// Random functions for testing
 #[allow(dead_code)]
 pub mod test {
-    use tgnt::{button::Button, keys::Key};
+    use crate::{button::Button, keys::Key};
 
     pub fn letter_to_key(c: char) -> Button {
         if !c.is_ascii() {

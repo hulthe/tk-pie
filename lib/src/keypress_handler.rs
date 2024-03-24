@@ -1,13 +1,15 @@
 use core::future::pending;
 
+use crate::{
+    button::Button,
+    event::{button, switch, Half},
+    keys::Key,
+};
 use embassy_sync::pubsub::{publisher::Pub, subscriber::Sub, PubSubBehavior, WaitResult};
 use embassy_time::{Duration, Instant, Timer};
 use futures::FutureExt;
 use heapless::Deque;
 use log::{debug, error};
-use tgnt::{button::Button, keys::Key};
-
-use crate::event::{button, switch, Half};
 
 /// The time a ModTap button takes to resolve as a Mod while being held down.
 const MOD_TAP_TIME: Duration = Duration::from_millis(150);
