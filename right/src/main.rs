@@ -43,8 +43,6 @@ async fn main(_spawner: Spawner) {
 
     neopixel.write(&[Rgb::new(0xFF, 0x00, 0x00)]).await;
 
-    //Timer::after(Duration::from_millis(3000)).await;
-
     let layers = include_bytes!("layers.pc");
     let Ok(layers): Result<Vec<Vec<Layer>>, _> = postcard::from_bytes(layers) else {
         log::error!("Failed to deserialize layer config");
@@ -54,7 +52,6 @@ async fn main(_spawner: Spawner) {
     let keyboard = KeyboardConfig {
         half,
         pins: [
-            // TODO: reconfigure these for right PCB
             // row 1
             board.d12.degrade(),
             board.d11.degrade(),

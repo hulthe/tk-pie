@@ -1,7 +1,6 @@
 use core::{
     cell::UnsafeCell,
     fmt::{self, Debug, Display, Write},
-    iter,
     mem::MaybeUninit,
     ops::Deref,
 };
@@ -169,11 +168,12 @@ pub fn display_len(t: &impl Display) -> usize {
 pub struct DisplayPack<T>(pub T);
 impl<T: Display> MsgPack for DisplayPack<T> {
     fn pack(&self) -> impl Iterator<Item = msgpck::Piece<'_>> {
-        let len = display_len(&self.0) as u32;
+        "TODO".pack()
+        //let len = display_len(&self.0) as u32;
 
-        [msgpck::Marker::Str32.into(), len.into()]
-            .into_iter()
-            .chain(iter::from_fn(move || None)) // TODO
+        //[msgpck::Marker::Str32.into(), len.into()]
+        //    .into_iter()
+        //    .chain(iter::from_fn(move || None)) // TODO
     }
 
     fn pack_with_writer(&self, w: &mut dyn msgpck::Write) -> Result<usize, PackErr> {
