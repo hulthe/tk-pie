@@ -1,8 +1,0 @@
-.program ws2812
-.origin 0
-.wrap_target
-   out x 1
-   set pins,1 [1]
-   mov pins,x [1]
-   set pins,0
-.wrap

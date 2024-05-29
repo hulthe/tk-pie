@@ -31,7 +31,6 @@ pub mod keys;
 pub mod layer;
 pub mod layout;
 pub mod logger;
-pub mod neopixel;
 pub mod rgb;
 pub mod rtt;
 pub mod serial_proto;
