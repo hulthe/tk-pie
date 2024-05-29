@@ -13,8 +13,8 @@
 				Key(D),
 				ModTap(H, RCtrl),
 				ModTap(T, RShift),
-				ModTap(N, RAlt),
-				ModTap(S, RMod),
+				ModTap(N, RMod),
+				ModTap(S, RAlt),
 
 				// Row 3
 				Key(B),
@@ -42,9 +42,9 @@
 				Compose2(Lower, Apostrophe, Variable, A), // ä
 				ModTap(D4, RCtrl),
 				ModTap(D5, RShift),
-				ModTap(D6, RAlt),
-				//ModTap(, RMod),
-				Mod(RMod),
+				ModTap(D6, RMod),
+				//ModTap(, RAlt),
+				Mod(RAlt),
 
 				// Row 3
 				Compose2(Lower, Apostrophe, Variable, O), // ö
@@ -72,8 +72,8 @@
 				Key(F2),
 				ModTap(F5, RCtrl),
 				ModTap(F8, RShift),
-				ModTap(F11, RAlt),
-				Mod(RMod),
+				ModTap(F11, RMod),
+				Mod(RAlt),
 
 				// Row 3
 				Key(F3),

@@ -10,8 +10,8 @@
 				Key(Y),
 
 				// Row 2
-				ModTap(A, LMod),
-				ModTap(O, LAlt),
+				ModTap(A, LAlt),
+				ModTap(O, LMod),
 				ModTap(E, LShift),
 				ModTap(U, LCtrl),
 				Key(I),
@@ -39,8 +39,8 @@
 				Key(Period),
 
 				// Row 2
-				ModTap(BackslashPipe, LMod),
-				ModTap(Dash, LAlt),
+				ModTap(BackslashPipe, LAlt),
+				ModTap(Dash, LMod),
 				ModTap(LBracket, LShift),
 				ModTap(RBracket, LCtrl),
 				Key(Tab),
@@ -68,8 +68,8 @@
 				None,
 
 				// Row 2
-				Mod(LMod),
 				Mod(LAlt),
+				Mod(LMod),
 				Mod(LShift),
 				Mod(LCtrl),
 				None,
