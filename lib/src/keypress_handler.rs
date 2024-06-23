@@ -1,7 +1,7 @@
 use core::future::pending;
 
 use crate::{
-    button::Button,
+    button::{Button, CompShift, Modifier},
     event::{button, switch, Half},
     keys::Key,
 };
@@ -28,6 +28,7 @@ pub async fn keypress_handler(
     output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
 ) -> ! {
     type SwitchIndex = usize;
+
     #[derive(Debug)]
     struct PressEvent {
         source_button: SwitchIndex,
@@ -36,51 +37,88 @@ pub async fn keypress_handler(
         time: Instant,
     }
 
+    #[derive(Default)]
+    struct ShiftHeld {
+        left: bool,
+        right: bool,
+    }
+
+    impl ShiftHeld {
+        pub fn either(&self) -> bool {
+            self.left || self.right
+        }
+    }
+
     async fn slow_press(
         output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
+        shift_held: &mut ShiftHeld,
         button: &Button,
     ) {
-        let event = match button {
-            &Button::Mod(m) | &Button::ModTap(_, m) => button::Event::PressMod(m),
-            &Button::Key(k) => button::Event::PressKey(k),
-            &Button::Compose2(csa, a, csb, b) => {
-                let events = [
-                    button::Event::PressKey(COMPOSE_KEY),
-                    button::Event::ReleaseKey(COMPOSE_KEY),
-                    button::Event::Wait,
-                    button::Event::PressKey(a),
-                    button::Event::ReleaseKey(a),
-                    button::Event::Wait,
-                    button::Event::PressKey(b),
-                    button::Event::ReleaseKey(b),
-                    button::Event::Wait,
-                ];
+        let do_compose = |keys: &[(CompShift, Key)]| {
+            for &(comp_shift, key) in keys {
+                match comp_shift {
+                    // Release any pressed shift keys
+                    CompShift::Lower => {
+                        if shift_held.left {
+                            output.publish_immediate(button::Event::ReleaseMod(Modifier::LShift));
+                        }
+                        if shift_held.right {
+                            output.publish_immediate(button::Event::ReleaseMod(Modifier::RShift));
+                        }
+                    }
 
-                for event in events {
-                    output.publish_immediate(event);
+                    // Press shift if not already pressed
+                    CompShift::Upper if !shift_held.either() => {
+                        output.publish_immediate(button::Event::PressMod(Modifier::LShift));
+                    }
+                    _ => {}
+                }
+                output.publish_immediate(button::Event::PressKey(key));
+                output.publish_immediate(button::Event::ReleaseKey(key));
+                output.publish_immediate(button::Event::Wait);
+
+                match comp_shift {
+                    // Re-press any shift keys we released
+                    CompShift::Lower => {
+                        if shift_held.left {
+                            output.publish_immediate(button::Event::PressMod(Modifier::LShift));
+                        }
+                        if shift_held.right {
+                            output.publish_immediate(button::Event::PressMod(Modifier::RShift));
+                        }
+                    }
+
+                    // Release the shift keys we pressed
+                    CompShift::Upper if !shift_held.either() => {
+                        output.publish_immediate(button::Event::ReleaseMod(Modifier::LShift));
+                    }
+                    _ => {}
+                }
+            }
+        };
+
+        let event = match button {
+            &Button::Mod(m) | &Button::ModTap(_, m) => {
+                match m {
+                    Modifier::LShift => shift_held.left = true,
+                    Modifier::RShift => shift_held.right = true,
+                    _ => {}
                 }
 
+                button::Event::PressMod(m)
+            }
+            &Button::Key(k) => button::Event::PressKey(k),
+            &Button::Compose2(csa, a, csb, b) => {
+                do_compose(&[(CompShift::Variable, COMPOSE_KEY), (csa, a), (csb, b)]);
                 return;
             }
             &Button::Compose3(csa, a, csb, b, csc, c) => {
-                let events = [
-                    button::Event::PressKey(COMPOSE_KEY),
-                    button::Event::ReleaseKey(COMPOSE_KEY),
-                    button::Event::Wait,
-                    button::Event::PressKey(a),
-                    button::Event::ReleaseKey(a),
-                    button::Event::Wait,
-                    button::Event::PressKey(b),
-                    button::Event::ReleaseKey(b),
-                    button::Event::Wait,
-                    button::Event::PressKey(c),
-                    button::Event::ReleaseKey(c),
-                ];
-
-                for event in events {
-                    output.publish_immediate(event);
-                }
-
+                do_compose(&[
+                    (CompShift::Variable, COMPOSE_KEY),
+                    (csa, a),
+                    (csb, b),
+                    (csc, c),
+                ]);
                 return;
             }
             _ => return,
@@ -90,10 +128,19 @@ pub async fn keypress_handler(
 
     async fn slow_release(
         output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
+        shift_held: &mut ShiftHeld,
         button: &Button,
     ) {
         let event = match button {
-            &Button::Mod(m) | &Button::ModTap(_, m) => button::Event::ReleaseMod(m),
+            &Button::Mod(m) | &Button::ModTap(_, m) => {
+                match m {
+                    Modifier::LShift => shift_held.left = false,
+                    Modifier::RShift => shift_held.right = false,
+                    _ => {}
+                }
+
+                button::Event::ReleaseMod(m)
+            }
             &Button::Key(k) => button::Event::ReleaseKey(k),
             _ => return,
         };
@@ -103,6 +150,10 @@ pub async fn keypress_handler(
     // queue of button presses that are waiting for ModTap
     let mut queue = Deque::<PressEvent, { 2 * SWITCH_COUNT }>::new();
     let queue = &mut queue;
+
+    // tracks whether a shift-key is being held down.
+    // required to properly play compose macros.
+    let mut shift_held = ShiftHeld::default();
 
     loop {
         // create a future that waits for the next ModTap to time out
@@ -134,7 +185,7 @@ pub async fn keypress_handler(
                     continue;
                 };
                 debug!("modtap resolved as mod: {:?}", event.button);
-                slow_press(output, &event.button).await;
+                slow_press(output, &mut shift_held, &event.button).await;
 
                 loop {
                     let Some(event) = queue.pop_front() else { break };
@@ -145,7 +196,7 @@ pub async fn keypress_handler(
                         queue.push_front(event).expect("we just popped, the queue can't be full");
                         break;
                     }
-                    slow_press(output, &event.button).await;
+                    slow_press(output, &mut shift_held, &event.button).await;
                 }
 
                 continue;
@@ -194,7 +245,7 @@ pub async fn keypress_handler(
                         if queue.is_empty() {
                             debug!("sending key now");
                             // otherwise, send immediately
-                            slow_press(output, &button).await;
+                            slow_press(output, &mut shift_held, &button).await;
                         } else {
                             debug!("adding key to queue");
                             // if events in queue, also add to queue
@@ -222,16 +273,16 @@ pub async fn keypress_handler(
                             for _ in 0..position_in_queue {
                                 let prev_event = queue.pop_front().unwrap();
                                 debug!("pressing earlier event {:?}", prev_event);
-                                slow_press(output, &prev_event.button).await;
+                                slow_press(output, &mut shift_held, &prev_event.button).await;
                             }
                             let _ = queue.pop_front();
                             debug!("pressing modtap as key");
-                            slow_press(output, &Button::Key(k)).await;
-                            slow_release(output, &Button::Key(k)).await;
+                            slow_press(output, &mut shift_held, &Button::Key(k)).await;
+                            slow_release(output, &mut shift_held, &Button::Key(k)).await;
                         } else {
                             // If the ModTap wasn't in the queue, it has already been resolved as a Mod.
                             debug!("modtap wasn't in queue, releasing");
-                            slow_release(output, &button).await;
+                            slow_release(output, &mut shift_held, &button).await;
                         };
                     }
                     Button::Mod(..)
@@ -247,11 +298,11 @@ pub async fn keypress_handler(
                             for _ in 0..=position_in_queue {
                                 let prev_event = queue.pop_front().unwrap();
                                 debug!("pressing {prev_event:?}");
-                                slow_press(output, &prev_event.button).await;
+                                slow_press(output, &mut shift_held, &prev_event.button).await;
                             }
                         }
                         debug!("releasing key {button:?}");
-                        slow_release(output, &button).await;
+                        slow_release(output, &mut shift_held, &button).await;
                     }
                     _ => {}
                 }

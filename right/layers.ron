@@ -39,7 +39,7 @@
 				Key(D0),
 
 				// Row 2
-				Compose2(Lower, Apostrophe, Variable, A), // ä
+				Compose2(Upper, Apostrophe, Variable, A), // ä
 				ModTap(D4, RCtrl),
 				ModTap(D5, RShift),
 				ModTap(D6, RMod),
@@ -47,7 +47,7 @@
 				Mod(RAlt),
 
 				// Row 3
-				Compose2(Lower, Apostrophe, Variable, O), // ö
+				Compose2(Upper, Apostrophe, Variable, O), // ö
 				Key(D1),
 				Key(D2),
 				Key(D3),

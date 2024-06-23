@@ -116,9 +116,14 @@ impl RequestHandler for Handler {
 }
 type HidStream = HidReaderWriter<'static, Driver<'static, USB>, 256, 256>;
 
+/// Capacity of the [button::Event] buffer in [event_listener_task]. A too small capacity may cause
+/// events to be dropped.
+pub const BUTTON_EVENT_BUF_LEN: usize = 32;
+
 #[embassy_executor::task]
 async fn event_listener_task(mut events: KbEvents, ctx: &'static Context) -> ! {
-    let button_events = PubSubChannel::<NoopRawMutex, button::Event, 10, 1, 1>::new();
+    let button_events =
+        PubSubChannel::<NoopRawMutex, button::Event, BUTTON_EVENT_BUF_LEN, 1, 1>::new();
     let mut button_pub = button_events.publisher().unwrap();
     let mut button_sub = button_events.subscriber().unwrap();
 
@@ -128,6 +133,7 @@ async fn event_listener_task(mut events: KbEvents, ctx: &'static Context) -> ! {
     )
     .await;
 
+    // match hack because rust isn't smart enough.
     match r {
         Either::First(never) | Either::Second(never) => match never {},
     }

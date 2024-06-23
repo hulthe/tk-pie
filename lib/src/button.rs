@@ -40,14 +40,14 @@ pub enum Button {
     Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, MsgPack, MsgUnpack,
 )]
 pub enum CompShift {
-    /// Do not shift the key.
+    /// Do not shift the key. [Key::A] becomes 'a'.
     #[default]
     Lower,
 
-    /// Shift the key.
+    /// Shift the key. [Key::A] becomes 'A'.
     Upper,
 
-    /// Shift the key if shift is being held down.
+    /// Shift the key if shift is being held down. [Key::A] becomes 'a' or 'A' depending.
     Variable,
 }
 
