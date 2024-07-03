@@ -62,24 +62,24 @@
 		Layer(
 			buttons: [
 				// Row 1
-				Key(F1),
-				Key(F4),
-				Key(F7),
-				Key(F10),
+				None,
+				Key(Mute),
+				Key(VolumeDown),
+				Key(VolumeUp),
 				Layer(Move, Down, 1),
 
 				// Row 2
-				Key(F2),
-				ModTap(F5, RCtrl),
-				ModTap(F8, RShift),
-				ModTap(F11, RMod),
-				Mod(RAlt),
+				Key(LeftArrow),
+				Key(DownArrow),
+				Key(UpArrow),
+				Key(RightArrow),
+				None,
 
 				// Row 3
-				Key(F3),
-				Key(F6),
-				Key(F9),
-				Key(F12),
+				Key(Home),
+				Key(PageDown),
+				Key(PageUp),
+				Key(End),
 				None,
 
 				// Thumbpad

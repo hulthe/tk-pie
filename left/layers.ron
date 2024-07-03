@@ -61,24 +61,24 @@
 		Layer(
 			buttons: [
 				// Row 1
-				Key(Escape),
-				Key(Mute),
-				Key(VolumeDown),
-				Key(VolumeUp),
+				Key(F1),
+				Key(F4),
+				Key(F7),
+				Key(F10),
 				None,
 
 				// Row 2
-				Mod(LAlt),
-				Mod(LMod),
-				Mod(LShift),
-				Mod(LCtrl),
+				Key(F2),
+				Key(F5),
+				Key(F8),
+				Key(F11),
 				None,
 
 				// Row 3
-				None,
-				None,
-				None,
-				None,
+				Key(F3),
+				Key(F6),
+				Key(F9),
+				Key(F12),
 				None,
 
 				// Thumbpad

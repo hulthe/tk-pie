@@ -137,7 +137,7 @@ async fn play_shader(state: &'static State, shader: &impl Shader) {
         (4, 4),
     ];
 
-    const BRIGHTNESS: f32 = 0.15;
+    const BRIGHTNESS: f32 = 1.00;
 
     let switch_coords = SWITCH_COORDS.map(|(x, y)| (f32::from(x) / 4.0, f32::from(y) / 4.0));
 

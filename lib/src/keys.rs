@@ -115,19 +115,19 @@ pub enum Key {
     PageUp = 0x4B,
     /// Keyboard Delete Forward
     Delete = 0x4C,
-    /// KeyboardEnd7
+    /// Keyboard End
     End = 0x4D,
-    /// Keyboard PageDown7
-    PageDown7 = 0x4E,
-    /// Keyboard RightArrow7
-    RightArrow7 = 0x4F,
-    /// Keyboard LeftArrow7
-    LeftArrow7 = 0x50,
-    /// Keyboard DownArrow7
-    DownArrow7 = 0x51,
-    /// Keyboard UpArrow7
-    UpArrow7 = 0x52,
-    /// Keypad Num Lock and Clear6
+    /// Keyboard PageDown
+    PageDown = 0x4E,
+    /// Keyboard RightArrow
+    RightArrow = 0x4F,
+    /// Keyboard LeftArrow
+    LeftArrow = 0x50,
+    /// Keyboard DownArrow
+    DownArrow = 0x51,
+    /// Keyboard UpArrow
+    UpArrow = 0x52,
+    /// Keypad Num Lock and Clear
     KeypadNumLock = 0x53,
     /// Keypad /
     KeypadSlash = 0x54,
