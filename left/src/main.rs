@@ -1,9 +1,10 @@
 //! Firmware for Tangentbord1, left half.
 
-#![no_std]
+// NOTE: the order of attributes matters here..
 #![no_main]
+#![cfg(target_os = "none")] // only try to compile this for embedded
+#![no_std]
 #![feature(type_alias_impl_trait)]
-#![cfg(target_arch = "arm")]
 
 extern crate alloc;
 extern crate cortex_m_rt;
