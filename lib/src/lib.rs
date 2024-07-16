@@ -25,11 +25,11 @@ pub mod ws2812;
 
 pub mod atomics;
 pub mod button;
+pub mod button_layout;
 pub mod event;
 pub mod keypress_handler;
 pub mod keys;
 pub mod layer;
-pub mod layout;
 pub mod logger;
 pub mod rgb;
 pub mod rtt;

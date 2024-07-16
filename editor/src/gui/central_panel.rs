@@ -3,19 +3,18 @@ use tk_pie::{layer::Layer, layout::Layout};
 
 use crate::{
     edit_mode::{ButtonIdentifier, EditModeWrapper},
-    mat::Mat,
-    ron_utils::RonEdit,
+    layouts::Layout,
     serial::SerialState,
 };
+use egui::{Button, Color32, Frame, Rect, ScrollArea, Stroke, Vec2};
 
 use super::GuiSettings;
 
 pub fn central_panel(
     ctx: &egui::Context,
     gui_settings: &GuiSettings,
-    layout: &mut RonEdit<Layout>,
+    layout: &mut Layout,
     edit_mode: &mut EditModeWrapper,
-    layers: &mut Mat<RonEdit<Layer>>,
     serial: &mut SerialState,
 ) {
     let SerialState {
@@ -25,6 +24,12 @@ pub fn central_panel(
         logs: _,
         active_layer,
     } = serial;
+
+    let Layout {
+        name,
+        button_layout,
+        layers,
+    } = layout;
 
     let GuiSettings { u1, margin } = gui_settings;
 
@@ -38,6 +43,11 @@ pub fn central_panel(
                 }
             }
 
+            ui.heading(format!(
+                "Layout {name} ({} keys)",
+                button_layout.t.buttons.len()
+            ));
+
             for (i, layer) in layers.iter_cf().enumerate() {
                 let x = (i / layers.height()) as u16;
                 let y = (i % layers.height()) as u16;
@@ -47,7 +57,7 @@ pub fn central_panel(
                 }
 
                 Frame::none().show(ui, |ui| {
-                    for (i, geometry) in layout.t.buttons.iter().enumerate() {
+                    for (i, geometry) in button_layout.t.buttons.iter().enumerate() {
                         let margin = *margin * *u1;
                         let size = Vec2::new(
                             *u1 * geometry.w - margin * 2.0,

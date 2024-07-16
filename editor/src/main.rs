@@ -1,6 +1,7 @@
 mod edit_mode;
 mod gui;
 mod key_mapper;
+mod layouts;
 mod mat;
 mod ron_utils;
 mod serial;
@@ -9,12 +10,11 @@ use clap::Parser;
 use edit_mode::EditModeWrapper;
 use eyre::eyre;
 use gui::GuiSettings;
-use mat::Mat;
+use layouts::Layouts;
 use ron_utils::RonEdit;
 use serde::{Deserialize, Serialize};
 use serial::SerialState;
-use std::{borrow::BorrowMut, path::PathBuf};
-use tk_pie::{layer::Layer, layout::Layout};
+use std::path::PathBuf;
 use tokio::runtime::Runtime;
 
 #[derive(Parser)]
@@ -49,9 +49,7 @@ fn main() -> eyre::Result<()> {
 #[derive(Deserialize, Serialize, Default)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct App {
-    layout: RonEdit<Layout>,
-
-    layers: Mat<RonEdit<Layer>>,
+    layouts: Layouts,
 
     edit_mode: EditModeWrapper,
     gui_settings: GuiSettings,
@@ -72,21 +70,7 @@ impl App {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
 
-        let layer_str = include_str!("default_layer.ron");
-        let layer: Layer = ron::from_str(layer_str).expect("Failed to deserialize default layer");
-
-        let layout_str = include_str!("default_layout.ron");
-        let layout: Layout =
-            ron::from_str(layout_str).expect("Failed to deserialize default layout");
-
-        let mut layers = Mat::default();
-        layers.push_row(RonEdit::new(layer));
-
-        Self {
-            layers,
-            layout: RonEdit::new(layout),
-            ..Self::default()
-        }
+        Self::default()
     }
 }
 
@@ -98,17 +82,16 @@ impl eframe::App for App {
 
     fn raw_input_hook(&mut self, _ctx: &egui::Context, raw_input: &mut egui::RawInput) {
         self.edit_mode
-            .handle_input(self.layers.borrow_mut(), raw_input);
+            .handle_input(&mut self.layouts.active.layers, raw_input);
     }
 
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let Self {
-            layout,
+            layouts,
             gui_settings,
             edit_mode,
-            layers,
             serial,
         } = self;
 
@@ -126,8 +109,14 @@ impl eframe::App for App {
             });
         });
 
-        gui::side_panel::side_panel(ctx, serial, gui_settings, edit_mode, layout, layers);
+        gui::side_panel::side_panel(ctx, serial, gui_settings, edit_mode, layouts);
 
-        gui::central_panel::central_panel(ctx, gui_settings, layout, edit_mode, layers, serial);
+        gui::central_panel::central_panel(
+            ctx,
+            gui_settings,
+            &mut layouts.active,
+            edit_mode,
+            serial,
+        );
     }
 }

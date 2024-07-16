@@ -1,4 +1,4 @@
-Layout(
+ButtonLayout(
 	buttons: [
 		(x: 0.0, y: 0.4),
 		(x: 1.0, y: 0.2),

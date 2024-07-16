@@ -1,12 +1,12 @@
 use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize)]
-pub struct Layout {
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct ButtonLayout {
     pub buttons: Vec<Rect>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Rect {
     pub x: f32,
     pub y: f32,

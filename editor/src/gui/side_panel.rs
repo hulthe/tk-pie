@@ -1,9 +1,10 @@
 use egui::{Color32, ScrollArea, Slider, TextEdit, Ui};
-use tk_pie::{layer::Layer, layout::Layout};
+use tk_pie::{button_layout::ButtonLayout, layer::Layer};
 use tokio::{sync::oneshot, task::spawn_blocking};
 
 use crate::{
     edit_mode::EditModeWrapper,
+    layouts::{Layout, Layouts},
     mat::Mat,
     ron_utils::RonEdit,
     serial::{connect_to_serial, scan_for_serial, SerialState},
@@ -16,8 +17,7 @@ pub fn side_panel(
     serial: &mut SerialState,
     gui_settings: &mut GuiSettings,
     edit_mode: &mut EditModeWrapper,
-    layout: &mut RonEdit<Layout>,
-    layers: &mut Mat<RonEdit<Layer>>,
+    layouts: &mut Layouts,
 ) {
     let GuiSettings { u1, margin } = gui_settings;
 
@@ -39,33 +39,7 @@ pub fn side_panel(
                     edit_mode.toggle_edit_mode();
                 }
 
-                layout_input(layout, ui);
-
-                layers_input(layers, ui);
-
-                if ui.button("Add layer row").clicked() {
-                    layers.push_row(RonEdit::default());
-                }
-
-                ui.menu_button("Delete layer row", |ui| {
-                    for r in 0..layers.height() {
-                        if ui.button(format!("row {r}")).clicked() {
-                            layers.remove_row(r);
-                        }
-                    }
-                });
-
-                if ui.button("Add layer column").clicked() {
-                    layers.push_col(RonEdit::default());
-                }
-
-                ui.menu_button("Delete layer column", |ui| {
-                    for c in 0..layers.width() {
-                        if ui.button(format!("column {c}")).clicked() {
-                            layers.remove_col(c);
-                        }
-                    }
-                });
+                layouts_input(layouts, ui);
             });
         });
 }
@@ -123,7 +97,92 @@ fn sidepanel_serial(ctx: &egui::Context, serial: &mut SerialState, ui: &mut Ui) 
     });
 }
 
-fn layout_input(layout: &mut RonEdit<Layout>, ui: &mut Ui) {
+fn layouts_input(layout: &mut Layouts, ui: &mut Ui) {
+    ui.collapsing("Current layout", |ui| {
+        let Layout {
+            name,
+            button_layout,
+            layers,
+        } = &mut layout.active;
+
+        ui.text_edit_singleline(name);
+
+        layout_input(button_layout, ui);
+
+        layers_input(layers, ui);
+
+        if ui.button("Add layer row").clicked() {
+            layers.push_row(RonEdit::default());
+        }
+
+        ui.menu_button("Delete layer row", |ui| {
+            for r in 0..layers.height() {
+                if ui.button(format!("row {r}")).clicked() {
+                    layers.remove_row(r);
+                }
+            }
+        });
+
+        if ui.button("Add layer column").clicked() {
+            layers.push_col(RonEdit::default());
+        }
+
+        ui.menu_button("Delete layer column", |ui| {
+            for c in 0..layers.width() {
+                if ui.button(format!("column {c}")).clicked() {
+                    layers.remove_col(c);
+                }
+            }
+        });
+    });
+
+    ui.collapsing("Alternative layouts", |ui| {
+        if layout.alternatives.is_empty() {
+            ui.label("No alternative layouts");
+        } else {
+            for (num, alt) in layout.alternatives.iter().enumerate() {
+                ui.label(format!("{num} - {}", alt.name));
+            }
+        }
+
+        ui.menu_button("Change active", |ui| {
+            for num in 0..layout.alternatives.len() {
+                if ui.button(format!("layout {num}")).clicked() {
+                    let new = layout.alternatives.remove(num);
+                    let old = layout.switch_active(new.into());
+                    layout.alternatives.push(old.into());
+                }
+            }
+        });
+
+        if ui.button("Add layout").clicked() {
+            layout.alternatives.push(Layout::default());
+        };
+
+        ui.menu_button("Duplicate layout", |ui| {
+            if ui.button("active layout").clicked() {
+                let new = layout.active.duplicate();
+                layout.alternatives.push(new.into());
+            }
+            for num in 0..layout.alternatives.len() {
+                if ui.button(format!("layout {num}")).clicked() {
+                    let new = layout.alternatives[num].duplicate();
+                    layout.alternatives.push(new);
+                }
+            }
+        });
+
+        ui.menu_button("Remove layout", |ui| {
+            for num in 0..layout.alternatives.len() {
+                if ui.button(format!("layout {num}")).clicked() {
+                    layout.alternatives.remove(num);
+                }
+            }
+        });
+    });
+}
+
+fn layout_input(layout: &mut RonEdit<ButtonLayout>, ui: &mut Ui) {
     ui.collapsing("Layout", |ui| {
         if ui
             .add(TextEdit::multiline(&mut layout.ron).code_editor())

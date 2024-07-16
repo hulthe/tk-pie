@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// 2-dimensional dynamically sized matrix
-#[derive(Default, Deserialize, Serialize)]
+#[derive(Default, Deserialize, Serialize, Clone)]
 pub struct Mat<T> {
     rows: Vec<Vec<T>>,
 }
@@ -93,6 +93,22 @@ impl<T> Mat<T> {
             for row in self.rows.iter_mut() {
                 row.remove(x);
             }
+        }
+    }
+
+    /// Map the values of this matrix without altering the structure of it.
+    pub fn map<K, F>(self, op: F) -> Mat<K>
+    where
+        F: FnMut(T) -> K,
+    {
+        let mut op = op;
+
+        Mat {
+            rows: self
+                .rows
+                .into_iter()
+                .map(|r| r.into_iter().map(&mut op).collect::<Vec<K>>())
+                .collect(),
         }
     }
 }

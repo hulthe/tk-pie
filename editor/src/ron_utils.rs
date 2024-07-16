@@ -15,6 +15,14 @@ impl<T: Serialize> RonEdit<T> {
             t,
         }
     }
+
+    pub fn from_parts(ron: String, t: T) -> Self {
+        RonEdit {
+            ron,
+            error: String::new(),
+            t,
+        }
+    }
 }
 
 impl<T: Default + Serialize> Default for RonEdit<T> {

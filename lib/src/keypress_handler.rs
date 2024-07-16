@@ -325,7 +325,6 @@ mod tests {
     };
     use embassy_sync::{blocking_mutex::raw::NoopRawMutex, pubsub::PubSubChannel};
     use embassy_time::with_timeout;
-    use tgnt::{button::Modifier, keys::Key};
 
     struct Test {
         // button index, pressed, delay
