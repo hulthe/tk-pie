@@ -19,14 +19,6 @@ pub fn side_panel(
     layout: &mut RonEdit<Layout>,
     layers: &mut Mat<RonEdit<Layer>>,
 ) {
-    let SerialState {
-        scan_task: scan_serial_task,
-        dev: serial_devs,
-        reader: serial_reader,
-        logs: serial_logs,
-        active_layer: _,
-    } = serial;
-
     let GuiSettings { u1, margin } = gui_settings;
 
     egui::SidePanel::left("side_panel")
@@ -36,50 +28,7 @@ pub fn side_panel(
             ScrollArea::vertical().show(ui, |ui| {
                 ui.heading("Side Panel");
 
-                ui.collapsing("Serial", |ui| {
-                    match serial_devs {
-                        Ok(Some(dev)) => {
-                            if serial_reader.is_none()
-                                && ui.button(format!("Connect to {dev:?}")).clicked()
-                            {
-                                *serial_reader = Some(connect_to_serial(dev.clone(), ctx.clone()));
-                            };
-                        }
-                        Ok(None) => {
-                            ui.label("No devices found.");
-                        }
-                        Err(e) => {
-                            ui.code_editor(e);
-                        }
-                    }
-
-                    if ui.button("scan for serial device").clicked() && scan_serial_task.is_none() {
-                        let (tx, rx) = oneshot::channel();
-                        let ctx = ctx.clone();
-                        spawn_blocking(move || {
-                            let r = scan_for_serial().map_err(|e| e.to_string());
-                            let _ = tx.send(r);
-                            ctx.request_repaint();
-                        });
-
-                        *scan_serial_task = Some(rx);
-                    }
-
-                    if scan_serial_task.is_some() {
-                        ui.label("Scanning...");
-                    }
-
-                    ScrollArea::both().show(ui, |ui| {
-                        for log in &*serial_logs {
-                            ui.group(|ui| {
-                                ui.horizontal(|ui| {
-                                    ui.label(&log.level);
-                                    ui.label(&log.message);
-                                });
-                            });
-                        }
-                    })
-                });
+                sidepanel_serial(ctx, serial, ui);
 
                 ui.label("u1");
                 ui.add(Slider::new(u1, 20.0..=150.0));
@@ -119,6 +68,59 @@ pub fn side_panel(
                 });
             });
         });
+}
+
+fn sidepanel_serial(ctx: &egui::Context, serial: &mut SerialState, ui: &mut Ui) {
+    let SerialState {
+        scan_task: scan_serial_task,
+        dev: serial_devs,
+        reader: serial_reader,
+        logs: serial_logs,
+        active_layer: _,
+    } = serial;
+
+    ui.collapsing("Serial", |ui| {
+        match serial_devs {
+            Ok(Some(dev)) => {
+                if serial_reader.is_none() && ui.button(format!("Connect to {dev:?}")).clicked() {
+                    *serial_reader = Some(connect_to_serial(dev.clone(), ctx.clone()));
+                };
+            }
+            Ok(None) => {
+                ui.label("No devices found.");
+            }
+            Err(e) => {
+                ui.code_editor(e);
+            }
+        }
+
+        if ui.button("scan for serial device").clicked() && scan_serial_task.is_none() {
+            let (tx, rx) = oneshot::channel();
+            let ctx = ctx.clone();
+            spawn_blocking(move || {
+                let r = scan_for_serial().map_err(|e| e.to_string());
+                let _ = tx.send(r);
+                ctx.request_repaint();
+            });
+
+            *scan_serial_task = Some(rx);
+        }
+
+        if scan_serial_task.is_some() {
+            ui.label("Scanning...");
+        }
+
+        ScrollArea::both().show(ui, |ui| {
+            for log in &*serial_logs {
+                ui.group(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.label(&log.level);
+                        ui.label(&log.message);
+                    });
+                });
+            }
+        })
+    });
 }
 
 fn layout_input(layout: &mut RonEdit<Layout>, ui: &mut Ui) {
