@@ -1204,7 +1204,7 @@ dependencies = [
  "pretty_env_logger",
  "ron",
  "serde",
- "tangentbord1-lib",
+ "tk-pie",
  "tokio",
 ]
 
@@ -2515,6 +2515,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
+name = "left"
+version = "0.1.0"
+dependencies = [
+ "cortex-m-rt",
+ "embassy-executor",
+ "embassy-futures",
+ "embassy-rp",
+ "embassy-sync 0.5.0",
+ "embassy-time",
+ "log",
+ "postcard",
+ "ron",
+ "tk-pie",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3522,6 +3538,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "right"
+version = "0.1.0"
+dependencies = [
+ "cortex-m-rt",
+ "embassy-executor",
+ "embassy-futures",
+ "embassy-rp",
+ "embassy-sync 0.5.0",
+ "embassy-time",
+ "log",
+ "postcard",
+ "ron",
+ "tk-pie",
+]
+
+[[package]]
 name = "ron"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3981,80 +4013,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tangentbord1-left"
-version = "0.1.0"
-dependencies = [
- "cortex-m-rt",
- "embassy-executor",
- "embassy-futures",
- "embassy-rp",
- "embassy-sync 0.5.0",
- "embassy-time",
- "log",
- "postcard",
- "ron",
- "tangentbord1-lib",
-]
-
-[[package]]
-name = "tangentbord1-lib"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cortex-m",
- "cortex-m-rt",
- "crc-any",
- "critical-section",
- "embassy-executor",
- "embassy-futures",
- "embassy-rp",
- "embassy-sync 0.5.0",
- "embassy-time",
- "embassy-usb",
- "embassy-usb-driver",
- "embassy-usb-logger",
- "embedded-alloc",
- "embedded-hal 0.2.7",
- "embedded-io-async",
- "fixed",
- "futures",
- "glam",
- "heapless 0.7.17",
- "libm",
- "log",
- "msgpck",
- "once_cell",
- "pio",
- "pio-proc",
- "portable-atomic",
- "postcard",
- "ron",
- "rtt-target",
- "serde",
- "simple_logger",
- "smart-leds",
- "static_cell",
- "usb-device",
- "usbd-hid",
-]
-
-[[package]]
-name = "tangentbord1-right"
-version = "0.1.0"
-dependencies = [
- "cortex-m-rt",
- "embassy-executor",
- "embassy-futures",
- "embassy-rp",
- "embassy-sync 0.5.0",
- "embassy-time",
- "log",
- "postcard",
- "ron",
- "tangentbord1-lib",
-]
-
-[[package]]
 name = "tempfile"
 version = "3.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4187,6 +4145,48 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tk-pie"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "cortex-m",
+ "cortex-m-rt",
+ "crc-any",
+ "critical-section",
+ "embassy-executor",
+ "embassy-futures",
+ "embassy-rp",
+ "embassy-sync 0.5.0",
+ "embassy-time",
+ "embassy-usb",
+ "embassy-usb-driver",
+ "embassy-usb-logger",
+ "embedded-alloc",
+ "embedded-hal 0.2.7",
+ "embedded-io-async",
+ "fixed",
+ "futures",
+ "glam",
+ "heapless 0.7.17",
+ "libm",
+ "log",
+ "msgpck",
+ "once_cell",
+ "pio",
+ "pio-proc",
+ "portable-atomic",
+ "postcard",
+ "ron",
+ "rtt-target",
+ "serde",
+ "simple_logger",
+ "smart-leds",
+ "static_cell",
+ "usb-device",
+ "usbd-hid",
+]
 
 [[package]]
 name = "tokio"

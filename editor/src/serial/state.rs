@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, path::PathBuf};
 
-use tangentbord1::serial_proto::owned::{ChangeLayer, DeviceMsg, LogRecord};
+use tk_pie::serial_proto::owned::{ChangeLayer, DeviceMsg, LogRecord};
 use tokio::sync::{
     mpsc::{self, Receiver},
     oneshot::{self, error::TryRecvError},

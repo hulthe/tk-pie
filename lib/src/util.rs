@@ -193,9 +193,7 @@ impl<T: Display> MsgPack for DisplayPack<T> {
         struct Write<'a>(&'a mut dyn msgpck::Write);
         impl fmt::Write for Write<'_> {
             fn write_str(&mut self, s: &str) -> fmt::Result {
-                self.0
-                    .write_all(s.as_bytes())
-                    .map_err(|_| fmt::Error::default())?;
+                self.0.write_all(s.as_bytes()).map_err(|_| fmt::Error)?;
                 Ok(())
             }
         }

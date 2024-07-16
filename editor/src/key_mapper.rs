@@ -1,6 +1,6 @@
 use egui::Key;
-use tangentbord1::button::Button;
-use tangentbord1::keys::Key as K;
+use tk_pie::button::Button;
+use tk_pie::keys::Key as K;
 
 macro_rules! k {
     ($k: ident) => {

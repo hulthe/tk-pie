@@ -1,6 +1,5 @@
 (footprint "ITSYBITSY BREAKOUT" (version 20221018) (generator pcbnew)
   (layer "F.Cu")
-  (property "Sheetfile" "tangentbord1.kicad_sch")
   (property "Sheetname" "")
   (attr through_hole)
   (fp_text reference "ITSYBITSY1" (at -4.165003 -2.54) (layer "F.SilkS")

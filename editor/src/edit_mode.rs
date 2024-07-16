@@ -1,6 +1,6 @@
 use egui::Event;
 use serde::{Deserialize, Serialize};
-use tangentbord1::layer::Layer;
+use tk_pie::layer::Layer;
 
 use crate::{key_mapper::map_key, mat::Mat, RonEdit};
 
@@ -78,7 +78,7 @@ impl EditModeWrapper {
         if let Some(key) = map_key(key) {
             if selected_button.index >= layer.t.buttons.len() {
                 while selected_button.index >= layer.t.buttons.len() {
-                    layer.t.buttons.push(tangentbord1::button::Button::None);
+                    layer.t.buttons.push(tk_pie::button::Button::None);
                 }
             }
             // Index is now guaranteed to exist.

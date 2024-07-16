@@ -14,7 +14,7 @@ use embassy_executor::Spawner;
 use embassy_rp::gpio::{Level, Output, Pin};
 use embassy_time::Timer;
 use log::error;
-use tangentbord1::{
+use tk_pie::{
     board::Board,
     event::Half,
     interrupts::Irqs,

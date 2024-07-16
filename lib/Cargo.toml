@@ -1,5 +1,5 @@
 [package]
-name = "tangentbord1-lib"
+name = "tk-pie"
 version = "0.1.0"
 authors = ["Joakim Hulthe <joakim@hulthe.net>"]
 description = "Keyboard firmware"

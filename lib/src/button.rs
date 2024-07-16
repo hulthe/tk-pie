@@ -61,7 +61,10 @@ pub enum LayerDir {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, MsgPack, MsgUnpack)]
 pub enum LayerShift {
+    /// Switch layer when button is pressed and stay there.
     Move,
+
+    /// Switch layer when button is pressed, and switch back when button is released.
     Peek,
 }
 

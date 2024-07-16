@@ -1,6 +1,5 @@
 (footprint "MX_SW_SOCKET_LED" (version 20221018) (generator pcbnew)
   (layer "F.Cu")
-  (property "Sheetfile" "tangentbord1-right.kicad_sch")
   (property "Sheetname" "")
   (attr smd)
   (fp_text reference "S6" (at -3.093788 -5.083025) (layer "F.SilkS")

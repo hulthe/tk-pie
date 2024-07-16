@@ -2,7 +2,6 @@
   (layer "F.Cu")
   (descr "solder Pin_ with flat fork, hole diameter 0.9mm, length 10.0mm, width 2.4mm")
   (tags "solder Pin_ with flat fork")
-  (property "Sheetfile" "tangentbord1.kicad_sch")
   (property "Sheetname" "")
   (property "ki_description" "Generic connector, single row, 01x01, script generated")
   (property "ki_keywords" "connector")

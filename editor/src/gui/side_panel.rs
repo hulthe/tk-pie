@@ -1,5 +1,5 @@
 use egui::{Color32, ScrollArea, Slider, TextEdit, Ui};
-use tangentbord1::{layer::Layer, layout::Layout};
+use tk_pie::{layer::Layer, layout::Layout};
 use tokio::{sync::oneshot, task::spawn_blocking};
 
 use crate::{

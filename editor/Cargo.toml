@@ -3,9 +3,9 @@ name = "editor"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies.tangentbord1]
+[dependencies.tk-pie]
 path = "../lib"
-package = "tangentbord1-lib"
+package = "tk-pie"
 features = ["std"]
 
 [dependencies]

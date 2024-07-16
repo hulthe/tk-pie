@@ -1,13 +1,13 @@
 [package]
-name = "tangentbord1-left"
+name = "left"
 version = "0.1.0"
 authors = ["Joakim Hulthe <joakim@hulthe.net>"]
 description = "Keyboard firmware"
 edition = "2021"
 
-[dependencies.tangentbord1]
+[dependencies.tk-pie]
 path = "../lib"
-package = "tangentbord1-lib"
+package = "tk-pie"
 
 [target.thumbv6m-none-eabi.dependencies]
 cortex-m-rt = "0.7"
@@ -23,6 +23,6 @@ postcard = { version = "1.0.4", features = ["alloc"] }
 ron = "0.8.0"
 postcard = { version = "1", features = ["use-std"] }
 
-[build-dependencies.tangentbord1]
+[build-dependencies.tk-pie]
 path = "../lib"
-package = "tangentbord1-lib"
+package = "tk-pie"

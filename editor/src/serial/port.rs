@@ -3,7 +3,7 @@ use std::{future::pending, path::PathBuf, time::Duration};
 use egui::Context;
 use eyre::{bail, Context as EyreContext};
 use msgpck::{MsgPack, MsgUnpack, UnpackErr};
-use tangentbord1::serial_proto::owned::{DeviceMsg, HostMsg};
+use tk_pie::serial_proto::owned::{DeviceMsg, HostMsg};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, AsyncWriteExt},

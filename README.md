@@ -1,4 +1,6 @@
-A DIY split keyboard.
+# Tk🥧
+Alternatively: **tk-pie**, or **Test Keyboard Please IgnorE**.
+A split keyboard design and firmware.
 
 ## Directory
 
@@ -11,7 +13,7 @@ Rust binaries, one for each half of the split keyboard.
 Most of the actual logic is implemented in `/lib`.
 
 ### `/schematic`
-Kicad schematics of the keyboard PCBs.
+KiCad schematics of the keyboard PCBs.
 
 ### `/case`
 3d-printable files of the keyboard case and related plastics.
@@ -20,10 +22,10 @@ Kicad schematics of the keyboard PCBs.
 A graphical program for configuring the keyboard layout. Work in progress.
 
 
-## Developing
+## Firmware development
 
 Required tools:
-- Rust, obviously.
+- Rust
 - `probe-rs` for flashing the firmware. Follow instructions at https://probe.rs/
 - [`flip-link`](https://github.com/knurling-rs/flip-link/)
 - A debug probe of some kind, I recommend a [Pitaya-Link](https://github.com/makerdiary/pitaya-link)
