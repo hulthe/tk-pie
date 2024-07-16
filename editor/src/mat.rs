@@ -31,12 +31,12 @@ impl<T> Mat<T> {
         Some(&mut self.rows[y][x])
     }
 
-    /// Get the width & height of the matrix
+    /// Get the height of the matrix
     pub fn height(&self) -> usize {
         self.rows.len()
     }
 
-    /// Get the width & height of the matrix
+    /// Get the width of the matrix
     pub fn width(&self) -> usize {
         self.rows.first().map(|row| row.len()).unwrap_or(0)
     }
