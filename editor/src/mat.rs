@@ -38,7 +38,7 @@ impl<T> Mat<T> {
 
     /// Get the width & height of the matrix
     pub fn width(&self) -> usize {
-        self.rows.get(0).map(|row| row.len()).unwrap_or(0)
+        self.rows.first().map(|row| row.len()).unwrap_or(0)
     }
 
     /// Get the width & height of the matrix

@@ -100,13 +100,13 @@ struct Properties<'a> {
 
 fn parse_properties<'a>(properties: &HashMap<&'a str, &'a str>) -> Option<Properties<'a>> {
     Some(Properties {
-        model: *properties.get("ID_MODEL")?,
-        serial: *properties.get("ID_SERIAL")?,
-        serial_short: *properties.get("ID_SERIAL_SHORT")?,
-        vendor: *properties.get("ID_VENDOR")?,
-        vendor_id: *properties.get("ID_VENDOR_ID")?,
-        usb_type: *properties.get("ID_USB_TYPE")?,
-        usb_driver: *properties.get("ID_USB_DRIVER")?,
+        model: properties.get("ID_MODEL")?,
+        serial: properties.get("ID_SERIAL")?,
+        serial_short: properties.get("ID_SERIAL_SHORT")?,
+        vendor: properties.get("ID_VENDOR")?,
+        vendor_id: properties.get("ID_VENDOR_ID")?,
+        usb_type: properties.get("ID_USB_TYPE")?,
+        usb_driver: properties.get("ID_USB_DRIVER")?,
     })
 }
 

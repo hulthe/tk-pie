@@ -100,8 +100,8 @@ async fn read_serial(dev: PathBuf, tx: Sender<DeviceMsg>, ctx: Context) -> eyre:
 
         // try to parse messages from the read bytes
         loop {
-            let mut reader = &mut &buf[..];
-            let record = match DeviceMsg::unpack(&mut reader) {
+            let reader = &mut &buf[..];
+            let record = match DeviceMsg::unpack(reader) {
                 Ok(r) => r,
 
                 // we probably have not gotten the entire message yet, go back to reading bytes.
@@ -126,7 +126,7 @@ async fn read_serial(dev: PathBuf, tx: Sender<DeviceMsg>, ctx: Context) -> eyre:
                 buf.truncate(buf.len() - bytes_read);
             }
 
-            if let Err(_) = tx.send(record).await {
+            if tx.send(record).await.is_err() {
                 log::info!("channel closed, closing serial thingy");
                 return Ok(());
             }
