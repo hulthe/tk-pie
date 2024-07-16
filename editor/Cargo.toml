@@ -10,9 +10,9 @@ features = ["std"]
 
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
-eframe = { version = "0.26.2", features = ["persistence", "ron", "serde"] }
-egui = { version = "0.26.2", features = ["persistence", "ron", "serde"] }
-egui_extras = { version = "0.26.2" }
+eframe = { version = "0.28.1", features = ["persistence", "ron", "serde"] }
+egui = { version = "0.28.1", features = ["persistence", "ron", "serde"] }
+egui_extras = { version = "0.28.1" }
 msgpck = { version = "0.2.8", features = ["alloc"] }
 eyre = "0.6.12"
 log = "0.4.20"
