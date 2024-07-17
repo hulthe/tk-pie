@@ -1,12 +1,10 @@
 use egui::{Button, Color32, Frame, Rect, ScrollArea, Stroke, Vec2};
-use tk_pie::{layer::Layer, layout::Layout};
 
 use crate::{
     edit_mode::{ButtonIdentifier, EditModeWrapper},
     layouts::Layout,
     serial::SerialState,
 };
-use egui::{Button, Color32, Frame, Rect, ScrollArea, Stroke, Vec2};
 
 use super::GuiSettings;
 

@@ -149,8 +149,8 @@ fn layouts_input(layout: &mut Layouts, ui: &mut Ui) {
             for num in 0..layout.alternatives.len() {
                 if ui.button(format!("layout {num}")).clicked() {
                     let new = layout.alternatives.remove(num);
-                    let old = layout.switch_active(new.into());
-                    layout.alternatives.push(old.into());
+                    let old = layout.switch_active(new);
+                    layout.alternatives.push(old);
                 }
             }
         });
@@ -162,7 +162,7 @@ fn layouts_input(layout: &mut Layouts, ui: &mut Ui) {
         ui.menu_button("Duplicate layout", |ui| {
             if ui.button("active layout").clicked() {
                 let new = layout.active.duplicate();
-                layout.alternatives.push(new.into());
+                layout.alternatives.push(new);
             }
             for num in 0..layout.alternatives.len() {
                 if ui.button(format!("layout {num}")).clicked() {
