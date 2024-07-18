@@ -8,6 +8,7 @@ mod serial;
 
 use clap::Parser;
 use edit_mode::EditModeWrapper;
+use egui::{FontData, FontDefinitions, FontFamily, FontId, Style, TextStyle};
 use eyre::eyre;
 use gui::GuiSettings;
 use layouts::Layouts;
@@ -63,6 +64,32 @@ impl App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
         // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
+
+        let mut fonts = FontDefinitions::default();
+
+        fonts.font_data.insert(
+            "agave".into(),
+            FontData::from_static(include_bytes!(
+                "../resources/fonts/agave/AgaveNerdFontMono-Regular.ttf"
+            )),
+        );
+
+        fonts
+            .families
+            .get_mut(&egui::FontFamily::Monospace)
+            .expect("just added font, should exist")
+            .insert(0, "agave".into());
+
+        cc.egui_ctx.set_fonts(fonts);
+
+        let mut style = Style::default();
+
+        let mut font_style = FontId::default();
+        font_style.family = FontFamily::Monospace;
+
+        style.text_styles.insert(TextStyle::Button, font_style);
+
+        cc.egui_ctx.set_style(style);
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
