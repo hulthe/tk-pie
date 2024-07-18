@@ -1,3 +1,4 @@
+use core::fmt::{self, Debug, Display};
 use msgpck::{MsgPack, MsgUnpack};
 use serde::{Deserialize, Serialize};
 
@@ -265,5 +266,50 @@ pub enum Key {
 impl From<Key> for u8 {
     fn from(key: Key) -> u8 {
         key as u8
+    }
+}
+
+impl Display for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Key::D0 => "0 )",
+            Key::D1 => "1 !",
+            Key::D2 => "2 @",
+            Key::D3 => "3 #",
+            Key::D4 => "4 $",
+            Key::D5 => "5 %",
+            Key::D6 => "6 ^",
+            Key::D7 => "7 &",
+            Key::D8 => "8 *",
+            Key::D9 => "9 (",
+            Key::Return => "󰌑",
+            Key::Escape => "ESC",
+            Key::Backspace => "󰌍",
+            Key::Tab => "󰌒",
+            Key::Space => "󱁐",
+            Key::Dash => "- _",
+            Key::Equal => "= +",
+            Key::LBracket => "[ {",
+            Key::RBracket => "] }",
+            Key::BackslashPipe => "\\ |",
+            Key::Pound => "# ~",
+            Key::Colon => "; :",
+            Key::Apostrophe => "‘ “",
+            Key::Accent => "` ~",
+            Key::Comma => ", <",
+            Key::Period => ". >",
+            Key::Slash => "/ ?",
+            Key::CapsLock => "󰌎",
+            Key::RightArrow => "",
+            Key::LeftArrow => "",
+            Key::DownArrow => "",
+            Key::UpArrow => "",
+            Key::Mute => "",
+            Key::VolumeUp => "",
+            Key::VolumeDown => "",
+            k => return Debug::fmt(&k, f),
+        };
+
+        write!(f, "{s}")
     }
 }
