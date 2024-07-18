@@ -77,14 +77,20 @@ impl Display for Button {
         };
 
         match self {
-            Button::Mod(modifier) => Debug::fmt(&modifier, f),
-            Button::Key(key) => write!(f, "{key:?}"),
-            Button::ModTap(key, modifier) => write!(f, "{key:?}/{modifier}"),
+            Button::Mod(modifier) => write!(f, "{modifier}"),
+            Button::Key(key) => write!(f, "{key}"),
+            Button::ModTap(key, modifier) => write!(f, "{key}\n---\n{modifier}"),
             Button::Compose2(cs1, k1, cs2, k2) => {
-                write!(f, "⎄ {}{k1:?} {}{k2:?}", cs(cs1), cs(cs2))
+                write!(f, "{}{k1}\n+++\n{}{k2}", cs(cs1), cs(cs2))
             }
             Button::Compose3(cs1, k1, cs2, k2, cs3, k3) => {
-                write!(f, "⎄ {}{k1:?} {}{k2:?} {}{k3:?}", cs(cs1), cs(cs2), cs(cs3))
+                write!(
+                    f,
+                    "{}{k1}\n+++\n{}{k2}\n+++\n{}{k3}",
+                    cs(cs1),
+                    cs(cs2),
+                    cs(cs3)
+                )
             }
             Button::Layer(..) => write!(f, "Lr"),
             Button::None => write!(f, "Ø"),
@@ -95,14 +101,14 @@ impl Display for Button {
 impl Display for Modifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
-            Modifier::LCtrl => "⎈",
+            Modifier::LCtrl => "ctrl",
             Modifier::LShift => "⇧",
-            Modifier::LAlt => "⎇",
-            Modifier::LMod => "◆",
-            Modifier::RCtrl => "⎈",
+            Modifier::LAlt => "alt", // Seems to be problematic finding monospace font that can handle: ⎇
+            Modifier::LMod => "",
+            Modifier::RCtrl => "ctrl",
             Modifier::RShift => "⇧",
-            Modifier::RAlt => "⎇",
-            Modifier::RMod => "◆",
+            Modifier::RAlt => "alt",
+            Modifier::RMod => "",
         };
 
         write!(f, "{s}")
