@@ -22,7 +22,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "KeyboardFootprints:DFR1075"
 			(at 0 0 0)
 			(effects
 				(font
