@@ -2611,7 +2611,7 @@
 	)
 	(wire
 		(pts
-			(xy 53.34 144.78) (xy 60.96 144.78)
+			(xy 53.34 144.78) (xy 149.86 144.78)
 		)
 		(stroke
 			(width 0)
@@ -2688,16 +2688,6 @@
 			(type default)
 		)
 		(uuid "45ce9686-37ac-46c8-81f1-9d5d317cb4f6")
-	)
-	(wire
-		(pts
-			(xy 78.74 144.78) (xy 149.86 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "59b6693f-97d7-4e17-b978-92c4199e5196")
 	)
 	(wire
 		(pts
@@ -2913,7 +2903,7 @@
 		)
 		(uuid "05064795-9f45-4cd6-9f59-b57bb2f355ee")
 	)
-	(label "S22"
+	(label "S21"
 		(at 154.94 157.48 90)
 		(fields_autoplaced yes)
 		(effects
@@ -3353,17 +3343,6 @@
 		)
 		(uuid "ac9e29a0-5536-4935-bd3f-ab7f9c32df7d")
 	)
-	(label "S20"
-		(at 71.12 130.81 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "ae4d7f22-1b72-4fc1-a76e-09fa243fb773")
-	)
 	(label "S13"
 		(at 351.79 53.34 0)
 		(fields_autoplaced yes)
@@ -3397,7 +3376,7 @@
 		)
 		(uuid "b58f8096-701c-4b30-b317-7eed9ee07ed1")
 	)
-	(label "S23"
+	(label "S22"
 		(at 157.48 154.94 90)
 		(fields_autoplaced yes)
 		(effects
@@ -3441,7 +3420,7 @@
 		)
 		(uuid "c1456008-748a-4a99-af7d-7c75a7514c91")
 	)
-	(label "S21"
+	(label "S20"
 		(at 152.4 160.02 90)
 		(fields_autoplaced yes)
 		(effects
@@ -5207,153 +5186,6 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 67.31 152.4 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "475a31d4-4811-4fcf-a1ae-a0d21164d779")
-		(property "Reference" "#PWR066"
-			(at 67.31 158.75 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 67.31 157.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 67.31 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 67.31 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 67.31 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "4c91c6e1-506e-4eb2-b3b6-b7d372299731")
-		)
-		(instances
-			(project "tk-pie-left"
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "#PWR066")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "library:MX_SW_SOCKET_RGB_REV")
-		(at 69.85 140.97 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "4baf1474-d985-4adf-b7af-0e63a57748a9")
-		(property "Reference" "S20"
-			(at 83.82 141.0014 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MX_SW_SOCKET_RGB_REV"
-			(at 92.71 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "Footprints:MX_SW_SOCKET_LED_REV"
-			(at 97.79 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 69.85 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 69.85 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "5"
-			(uuid "aa307484-8623-4b25-a689-ce235ba6951e")
-		)
-		(pin "4"
-			(uuid "a11ea2db-e8dc-4f77-8429-1c2327cceb95")
-		)
-		(pin "1"
-			(uuid "cefe4f3d-8f8a-4243-8602-760e01315b94")
-		)
-		(pin "2"
-			(uuid "6b6a212a-6358-42e8-ac55-dd5ec7d94216")
-		)
-		(pin "6"
-			(uuid "a75dcea1-21fb-460e-84ff-627aee27136b")
-		)
-		(pin "3"
-			(uuid "1ac7a7bc-339f-4db6-a973-f379382a37ff")
-		)
-		(instances
-			(project ""
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "S20")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
 		(at 40.64 81.28 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6568,72 +6400,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+5V")
-		(at 72.39 152.4 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "72093f74-c2da-4db3-9a7c-81132b87a78b")
-		(property "Reference" "#PWR065"
-			(at 72.39 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 72.39 157.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 72.39 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 72.39 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 72.39 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e9dd2784-e409-4085-8f17-572ef2d49b80")
-		)
-		(instances
-			(project "tk-pie-left"
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "#PWR065")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
 		(at 330.2 96.52 90)
 		(unit 1)
@@ -7257,72 +7023,6 @@
 			(project "tk-pie-left"
 				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
 					(reference "#PWR058")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 68.58 130.81 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8802f275-7e0f-4357-a666-6a95a0230930")
-		(property "Reference" "#PWR052"
-			(at 68.58 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 68.58 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 68.58 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 68.58 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 68.58 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a213e6ab-5b4b-4753-aa9a-2ac6d3b55a7c")
-		)
-		(instances
-			(project "tk-pie-left"
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "#PWR052")
 					(unit 1)
 				)
 			)

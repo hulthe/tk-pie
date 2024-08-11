@@ -6,7 +6,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "U"
+		(property "Reference" "DFR1075"
 			(at 0 0 0)
 			(effects
 				(font
@@ -23,7 +23,7 @@
 			)
 		)
 		(property "Footprint" "KeyboardFootprints:DFR1075"
-			(at 0 0 0)
+			(at 8.89 1.778 0)
 			(effects
 				(font
 					(size 1.27 1.27)
