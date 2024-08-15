@@ -1285,7 +1285,7 @@
 				(justify left top)
 			)
 		)
-		(property "Footprint" "ME2108A33P:CONV_ME2108A33P"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-89-3_Handsoldering"
 			(at 29.718 15.24 0)
 			(effects
 				(font
@@ -1406,6 +1406,206 @@
 						(font
 							(size 1.016 1.016)
 						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "ME2108C50M5G"
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "PS"
+			(at -7.62 5.842 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Value" "ME2108C50M5G"
+			(at -7.62 9.652 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 29.718 5.588 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MP" "ME2108C50M5G"
+			(at 21.844 15.748 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "Description_1" "PFM 5V Step-up DC/DC Converter"
+			(at 30.988 12.954 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "MANUFACTURER" "Nanjing Micro One Electronics"
+			(at 28.702 10.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(symbol "ME2108C50M5G_0_0"
+			(rectangle
+				(start -5.08 5.08)
+				(end 5.08 -10.16)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "ME2108C50M5G_1_0"
+			(pin input line
+				(at -10.16 2.54 0)
+				(length 5.08)
+				(name "CE"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at -10.16 -2.54 0)
+				(length 5.08)
+				(name "VOUT"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin no_connect line
+				(at -10.16 -7.62 0)
+				(length 5.08)
+				(name "NC"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 10.16 -7.62 180)
+				(length 5.08)
+				(name "VSS"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 10.16 2.54 180)
+				(length 5.08)
+				(name "LX"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+			)
+		)
+		(symbol "ME2108C50M5G_1_1"
+			(text "(GND)"
+				(at 2.794 -8.89 0)
+				(effects
+					(font
+						(size 0.508 0.508)
+						(color 0 72 72 1)
 					)
 				)
 			)
