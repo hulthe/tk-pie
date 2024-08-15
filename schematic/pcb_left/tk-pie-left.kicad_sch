@@ -847,7 +847,7 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "DFR1075"
-				(at 0 0 0)
+				(at 8.382 -4.064 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -863,7 +863,7 @@
 				)
 			)
 			(property "Footprint" "Footprints:DFR1075"
-				(at 8.89 1.778 0)
+				(at 8.89 3.556 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -891,8 +891,8 @@
 			)
 			(symbol "DFR1075_0_1"
 				(rectangle
-					(start -11.43 -2.54)
-					(end 30.48 -73.66)
+					(start -8.89 -1.27)
+					(end 25.4 -73.66)
 					(stroke
 						(width 0)
 						(type default)
@@ -904,8 +904,8 @@
 			)
 			(symbol "DFR1075_1_1"
 				(pin bidirectional line
-					(at -11.43 -50.8 0)
-					(length 2.54)
+					(at -13.97 -50.8 0)
+					(length 5.08)
 					(name "D1"
 						(effects
 							(font
@@ -922,8 +922,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -58.42 0)
-					(length 2.54)
+					(at -13.97 -58.42 0)
+					(length 5.08)
 					(name "D14"
 						(effects
 							(font
@@ -941,7 +941,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -58.42 180)
-					(length 2.54)
+					(length 5.08)
 					(name "D15"
 						(effects
 							(font
@@ -958,8 +958,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -66.04 0)
-					(length 2.54)
+					(at -13.97 -66.04 0)
+					(length 5.08)
 					(name "TX"
 						(effects
 							(font
@@ -976,8 +976,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -69.85 0)
-					(length 2.54)
+					(at -13.97 -69.85 0)
+					(length 5.08)
 					(name "RX"
 						(effects
 							(font
@@ -994,8 +994,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -46.99 0)
-					(length 2.54)
+					(at -13.97 -46.99 0)
+					(length 5.08)
 					(name "CMD"
 						(effects
 							(font
@@ -1012,8 +1012,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -39.37 0)
-					(length 2.54)
+					(at -13.97 -39.37 0)
+					(length 5.08)
 					(name "CLK"
 						(effects
 							(font
@@ -1031,7 +1031,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -35.56 180)
-					(length 2.54)
+					(length 5.08)
 					(name "SDA"
 						(effects
 							(font
@@ -1049,7 +1049,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -50.8 180)
-					(length 2.54)
+					(length 5.08)
 					(name "D2"
 						(effects
 							(font
@@ -1066,8 +1066,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -35.56 0)
-					(length 2.54)
+					(at -13.97 -35.56 0)
+					(length 5.08)
 					(name "DAT0"
 						(effects
 							(font
@@ -1085,7 +1085,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -31.75 180)
-					(length 2.54)
+					(length 5.08)
 					(name "SCL"
 						(effects
 							(font
@@ -1102,8 +1102,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -31.75 0)
-					(length 2.54)
+					(at -13.97 -31.75 0)
+					(length 5.08)
 					(name "DAT1"
 						(effects
 							(font
@@ -1120,8 +1120,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -27.94 0)
-					(length 2.54)
+					(at -13.97 -27.94 0)
+					(length 5.08)
 					(name "DAT2"
 						(effects
 							(font
@@ -1138,8 +1138,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -24.13 0)
-					(length 2.54)
+					(at -13.97 -24.13 0)
+					(length 5.08)
 					(name "DAT3"
 						(effects
 							(font
@@ -1157,7 +1157,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -46.99 180)
-					(length 2.54)
+					(length 5.08)
 					(name "D3"
 						(effects
 							(font
@@ -1174,8 +1174,8 @@
 					)
 				)
 				(pin power_out line
-					(at -11.43 -8.89 0)
-					(length 2.54)
+					(at -13.97 -8.89 0)
+					(length 5.08)
 					(name "3.3V"
 						(effects
 							(font
@@ -1193,7 +1193,7 @@
 				)
 				(pin power_out line
 					(at 30.48 -24.13 180)
-					(length 2.54)
+					(length 5.08)
 					(name "3.3V"
 						(effects
 							(font
@@ -1211,7 +1211,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -43.18 180)
-					(length 2.54)
+					(length 5.08)
 					(name "LP_RX"
 						(effects
 							(font
@@ -1229,7 +1229,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -39.37 180)
-					(length 2.54)
+					(length 5.08)
 					(name "LP_TX"
 						(effects
 							(font
@@ -1247,7 +1247,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -62.23 180)
-					(length 2.54)
+					(length 5.08)
 					(name "D6"
 						(effects
 							(font
@@ -1265,7 +1265,7 @@
 				)
 				(pin bidirectional line
 					(at 30.48 -66.04 180)
-					(length 2.54)
+					(length 5.08)
 					(name "D7"
 						(effects
 							(font
@@ -1282,8 +1282,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -62.23 0)
-					(length 2.54)
+					(at -13.97 -62.23 0)
+					(length 5.08)
 					(name "D8"
 						(effects
 							(font
@@ -1300,8 +1300,8 @@
 					)
 				)
 				(pin bidirectional line
-					(at -11.43 -43.18 0)
-					(length 2.54)
+					(at -13.97 -43.18 0)
+					(length 5.08)
 					(name "D9"
 						(effects
 							(font
@@ -1318,9 +1318,9 @@
 					)
 				)
 				(pin power_in line
-					(at -11.43 -16.51 0)
-					(length 2.54)
-					(name "GROUND"
+					(at -13.97 -16.51 0)
+					(length 5.08)
+					(name "Ground"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1337,7 +1337,7 @@
 				)
 				(pin power_in line
 					(at 30.48 -27.94 180)
-					(length 2.54)
+					(length 5.08)
 					(name "Ground"
 						(effects
 							(font
@@ -1354,8 +1354,8 @@
 					)
 				)
 				(pin no_connect line
-					(at -11.43 -54.61 0)
-					(length 2.54)
+					(at -13.97 -54.61 0)
+					(length 5.08)
 					(name "Not_Connected"
 						(effects
 							(font
@@ -1372,8 +1372,8 @@
 					)
 				)
 				(pin no_connect line
-					(at -11.43 -20.32 0)
-					(length 2.54)
+					(at -13.97 -20.32 0)
+					(length 5.08)
 					(name "Not_Connected"
 						(effects
 							(font
@@ -1390,8 +1390,8 @@
 					)
 				)
 				(pin no_connect line
-					(at -11.43 -12.7 0)
-					(length 2.54)
+					(at -13.97 -12.7 0)
+					(length 5.08)
 					(name "Not_Connected"
 						(effects
 							(font
@@ -1409,7 +1409,7 @@
 				)
 				(pin no_connect line
 					(at 30.48 -69.85 180)
-					(length 2.54)
+					(length 5.08)
 					(name "Not_Connected"
 						(effects
 							(font
@@ -1427,7 +1427,7 @@
 				)
 				(pin no_connect line
 					(at 30.48 -54.61 180)
-					(length 2.54)
+					(length 5.08)
 					(name "Not_Connected"
 						(effects
 							(font
@@ -1444,8 +1444,8 @@
 					)
 				)
 				(pin input line
-					(at -11.43 -5.08 0)
-					(length 2.54)
+					(at -13.97 -5.08 0)
+					(length 5.08)
 					(name "RESET"
 						(effects
 							(font
@@ -1463,7 +1463,7 @@
 				)
 				(pin power_out line
 					(at 30.48 -20.32 180)
-					(length 2.54)
+					(length 5.08)
 					(name "VIN"
 						(effects
 							(font
@@ -4516,7 +4516,7 @@
 		(uuid "0703178e-705a-4aca-9713-caa90e503a2c")
 	)
 	(label "S22"
-		(at 261.62 77.47 0)
+		(at 264.16 77.47 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4549,7 +4549,7 @@
 		(uuid "0b829e44-8d42-447f-b996-c37e4b9d86d8")
 	)
 	(label "EXT_SCL"
-		(at 261.62 85.09 0)
+		(at 264.16 85.09 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4670,7 +4670,7 @@
 		(uuid "3547456a-5824-4d89-a5da-41d4d51186d9")
 	)
 	(label "EXT_SDA"
-		(at 261.62 81.28 0)
+		(at 264.16 81.28 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4758,7 +4758,7 @@
 		(uuid "511d1a6c-2e26-4c35-b503-50a5128c0de2")
 	)
 	(label "S_NOT_SET"
-		(at 261.62 54.61 0)
+		(at 264.16 54.61 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4901,7 +4901,7 @@
 		(uuid "a8a6f661-c4ae-4edf-bf21-b3a1cf3565af")
 	)
 	(label "S_NOT_SET"
-		(at 261.62 62.23 0)
+		(at 264.16 62.23 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4912,7 +4912,7 @@
 		(uuid "aa578ecb-695c-4c18-9c97-547fd34911bf")
 	)
 	(label "S20"
-		(at 261.62 66.04 0)
+		(at 264.16 66.04 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4934,7 +4934,7 @@
 		(uuid "ac9e29a0-5536-4935-bd3f-ab7f9c32df7d")
 	)
 	(label "LED_CTRL"
-		(at 261.62 50.8 0)
+		(at 264.16 50.8 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4967,7 +4967,7 @@
 		(uuid "b800593d-95d9-43b4-bcb0-79a8389c5f09")
 	)
 	(label "S21"
-		(at 261.62 69.85 0)
+		(at 264.16 69.85 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5110,7 +5110,7 @@
 		(uuid "df875bd7-b299-4a9b-9bff-cd346b7b4a56")
 	)
 	(label "S_NOT_SET"
-		(at 261.62 58.42 0)
+		(at 264.16 58.42 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6120,7 +6120,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 261.62 43.18 270)
+		(at 264.16 43.18 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6129,7 +6129,7 @@
 		(fields_autoplaced yes)
 		(uuid "2440db29-6981-4ec1-ab6f-230e42daa847")
 		(property "Reference" "#PWR069"
-			(at 257.81 43.18 0)
+			(at 260.35 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6138,7 +6138,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 265.43 43.1799 90)
+			(at 267.97 43.1799 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6147,7 +6147,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 261.62 43.18 0)
+			(at 264.16 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6156,7 +6156,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 261.62 43.18 0)
+			(at 264.16 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6165,7 +6165,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 261.62 43.18 0)
+			(at 264.16 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11641,7 +11641,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "ba0ef39a-2384-4a2e-8230-c32fa9de0b57")
 		(property "Reference" "#PWR048"
 			(at 223.52 27.94 0)
@@ -11834,7 +11833,7 @@
 	)
 	(symbol
 		(lib_id "library:DFR1075")
-		(at 231.14 19.05 0)
+		(at 233.68 19.05 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11843,7 +11842,7 @@
 		(fields_autoplaced yes)
 		(uuid "c00a2ab1-0b7b-4cd3-9295-1dda31b13ac8")
 		(property "Reference" "U1"
-			(at 240.665 17.78 0)
+			(at 243.205 17.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11851,7 +11850,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 240.665 20.32 0)
+			(at 243.205 20.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11859,7 +11858,7 @@
 			)
 		)
 		(property "Footprint" "Footprints:DFR1075"
-			(at 231.14 19.05 0)
+			(at 233.68 19.05 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11868,7 +11867,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 231.14 19.05 0)
+			(at 233.68 19.05 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11877,7 +11876,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 231.14 19.05 0)
+			(at 233.68 19.05 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12775,7 +12774,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 261.62 46.99 90)
+		(at 264.16 46.99 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12784,7 +12783,7 @@
 		(fields_autoplaced yes)
 		(uuid "e8c7494c-ee8e-46bd-bcf2-26f2d6fd5fb0")
 		(property "Reference" "#PWR068"
-			(at 267.97 46.99 0)
+			(at 270.51 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12793,7 +12792,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 265.43 47.625 90)
+			(at 267.97 47.625 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12802,7 +12801,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 261.62 46.99 0)
+			(at 264.16 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12811,7 +12810,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 261.62 46.99 0)
+			(at 264.16 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12820,7 +12819,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 261.62 46.99 0)
+			(at 264.16 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
