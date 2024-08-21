@@ -20,6 +20,7 @@ use tk_pie::{
     interrupts::Irqs,
     keyboard::KeyboardConfig,
     layer::Layer,
+    lights::LightDriver,
     logger::LogMultiplexer,
     rgb::Rgb,
     util::stall,

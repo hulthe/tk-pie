@@ -13,8 +13,6 @@ pub mod interrupts;
 #[cfg(target_arch = "arm")]
 pub mod keyboard;
 #[cfg(target_arch = "arm")]
-pub mod lights;
-#[cfg(target_arch = "arm")]
 pub mod panic_handler;
 #[cfg(target_arch = "arm")]
 pub mod uart;
@@ -23,6 +21,7 @@ pub mod usb;
 #[cfg(target_arch = "arm")]
 pub mod ws2812;
 
+pub mod lights;
 pub mod atomics;
 pub mod button;
 pub mod event;

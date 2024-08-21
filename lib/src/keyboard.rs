@@ -52,7 +52,7 @@ struct State {
     layers: SwapCellRead<Layers>,
     /// Array of LED indices of each switch
     led_map: [usize; SWITCH_COUNT],
-    lights: Lights<PIO1, SWITCH_COUNT>,
+    lights: Lights<Ws2812<PIO1>, SWITCH_COUNT>,
 }
 
 /// Number of [KbEvents] returned by [KeyboardConfig::create].
