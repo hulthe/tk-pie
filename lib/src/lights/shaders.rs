@@ -19,6 +19,9 @@ pub trait Shader {
 pub enum Shaders {
     OrthoRainbow,
     LsdHyperspace,
+
+    /// Cycle through red, green, blue, and white.
+    ComponentCycle,
 }
 
 impl Shader for Shaders {
@@ -26,6 +29,7 @@ impl Shader for Shaders {
         match self {
             Shaders::OrthoRainbow => OrthoRainbow.sample(time, uv),
             Shaders::LsdHyperspace => LsdHyperspace.sample(time, uv),
+            Shaders::ComponentCycle => ComponentCycle.sample(time, uv),
         }
     }
 }
@@ -56,6 +60,20 @@ impl Shader for LsdHyperspace {
         let col = cos3(fac) * cos3(fac * 0.5);
 
         Rgb::from_f32s(col.x, col.y, col.z)
+    }
+}
+
+pub struct ComponentCycle;
+impl Shader for ComponentCycle {
+    fn sample(&self, time: Instant, _uv: (f32, f32)) -> Rgb {
+        let time = time.as_millis();
+        let interval = time >> 12; // increments every ~4 seconds
+        match interval & 0b11 {
+            0b00 => Rgb::new(0xff, 0, 0),
+            0b01 => Rgb::new(0, 0xff, 0),
+            0b10 => Rgb::new(0, 0, 0xff),
+            _ => Rgb::new(0xff, 0xff, 0xff),
+        }
     }
 }
 
