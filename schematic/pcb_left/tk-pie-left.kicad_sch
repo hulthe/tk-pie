@@ -7467,7 +7467,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
 			(at 239.0648 283.21 0)
 			(effects
 				(font
@@ -8934,7 +8934,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Inductor_SMD:L_Cenker_CKCS5040"
 			(at 287.02 262.89 0)
 			(effects
 				(font
@@ -11350,7 +11350,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
 			(at 225.7552 290.83 0)
 			(effects
 				(font
