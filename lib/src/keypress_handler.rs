@@ -49,6 +49,7 @@ pub async fn keypress_handler(
         }
     }
 
+    /// Press a button, and treat [ModTap] as [Mod].
     async fn slow_press(
         output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
         shift_held: &mut ShiftHeld,
@@ -126,6 +127,7 @@ pub async fn keypress_handler(
         output.publish_immediate(event);
     }
 
+    /// Release a button, and treat [ModTap] as [Mod].
     async fn slow_release(
         output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
         shift_held: &mut ShiftHeld,
@@ -177,10 +179,14 @@ pub async fn keypress_handler(
         };
 
         let event = futures::select_biased! {
+            // wait for the next switch event
             event = input.next_message().fuse() => event,
+
+            // wait for any modtaps to time out
             event = modtap_timeout.fuse() => {
                 // first element in queue timed out, and will be treated as a Mod
                 let &Button::ModTap(..) = &event.button else {
+                    // this is a bug and should never happen
                     error!("first element in queue wasn't a modtap, wtf?");
                     continue;
                 };
@@ -265,10 +271,11 @@ pub async fn keypress_handler(
 
                 match button {
                     Button::ModTap(k, _) => {
-                        // check if modtap in queue
+                        // if button is a ModTap, check if it's already in the queue in queue
                         if let Some(position_in_queue) = position_in_queue {
-                            // If the modtap was still in the queue, it hasn't been resolved as a mod
-                            // yet. Therefore, it is a Tap. Resolve all ModTaps before this one as Mods
+                            // If the modtap was still in the queue, it hasn't been resolved as a
+                            // Mod yet. Therefore, it is a Tap. Resolve all ModTaps before this one
+                            // as Mods as well.
                             debug!("modtap was still in queue: {k:?}");
                             for _ in 0..position_in_queue {
                                 let prev_event = queue.pop_front().unwrap();
@@ -305,6 +312,16 @@ pub async fn keypress_handler(
                         slow_release(output, &mut shift_held, &button).await;
                     }
                     _ => {}
+                }
+
+                // then, pop and press all non-modtaps from the front of the queue
+                while let Some(event) = queue.front() {
+                    if let Button::ModTap(..) = &event.button {
+                        break;
+                    }
+
+                    slow_press(output, &mut shift_held, &event.button).await;
+                    let _ = queue.pop_front();
                 }
             }
         }
@@ -552,7 +569,7 @@ mod tests {
             match r {
                 Either::First(((), Ok(()))) => {}
                 Either::First(((), Err((msg, got)))) => panic!(
-                    "timing test failed due to {msg}.\nexpected={:#?} got={:#?}",
+                    "timing test failed ({msg})\nexpected these events: {:#?}\nbut got these: {:#?}",
                     test.expected, got
                 ),
                 Either::Second(never) => never,
