@@ -317,6 +317,7 @@ mod tests {
 
     use super::*;
 
+    use crate::{button::Modifier, keys::Key};
     use alloc::vec;
     use alloc::vec::Vec;
     use embassy_futures::{
@@ -325,7 +326,6 @@ mod tests {
     };
     use embassy_sync::{blocking_mutex::raw::NoopRawMutex, pubsub::PubSubChannel};
     use embassy_time::with_timeout;
-    use tgnt::{button::Modifier, keys::Key};
 
     struct Test {
         // button index, pressed, delay
@@ -343,15 +343,21 @@ mod tests {
         };
     }
 
+    /// A delay short enough to not trigger any modtaps.
     const SHORT: Duration = Duration::from_millis(1);
+
+    /// A delay long enough to trigger any modtaps.
     const LONG: Duration = Duration::from_millis(160);
 
     timing_test! {
-        modtap_mod,
+        modtap_modtap_mod,
         Test {
             input: vec![
+                // press first modtap
                 (0, true, SHORT),
+                // press second modtap
                 (1, true, SHORT),
+                // release second modtap, should resolve 0 as mod and 1 as key
                 (1, false, SHORT),
                 (0, false, SHORT),
             ],
@@ -363,13 +369,39 @@ mod tests {
             ],
         }
     }
+
     timing_test! {
-        modtap_tap,
+        key_modtap_tap,
         Test {
             input: vec![
+                // press modtap
                 (0, true, SHORT),
-                (1, true, SHORT),
+                // press key
+                (2, true, SHORT),
+                // release modtap, should resolve itself as a key
                 (0, false, SHORT),
+                (2, false, SHORT),
+            ],
+            expected: vec![
+                button::Event::PressKey(Key::A),
+                button::Event::ReleaseKey(Key::A),
+                button::Event::PressKey(Key::C),
+                button::Event::ReleaseKey(Key::C),
+            ],
+        }
+    }
+
+    timing_test! {
+        modtap_modtap_tap,
+        Test {
+            input: vec![
+                // press first modtap
+                (0, true, SHORT),
+                // press second modtap
+                (1, true, SHORT),
+                // release first modtap, should resolve itself as a key
+                (0, false, SHORT),
+                // release second modtap, should resolve itself as a key
                 (1, false, SHORT),
             ],
             expected: vec![
@@ -377,6 +409,33 @@ mod tests {
                 button::Event::ReleaseKey(Key::A),
                 button::Event::PressKey(Key::B),
                 button::Event::ReleaseKey(Key::B),
+            ],
+        }
+    }
+
+    timing_test! {
+        modtap_modtap_tap_into_key,
+        Test {
+            input: vec![
+                // press first modtap
+                (0, true, SHORT),
+                // press second modtap
+                (1, true, SHORT),
+                // release first modtap, should resolve itself as a key
+                (0, false, SHORT),
+                // press key
+                (2, true, SHORT),
+                // release key, should resolve second modtap as mod
+                (2, false, SHORT),
+                (1, false, SHORT),
+            ],
+            expected: vec![
+                button::Event::PressKey(Key::A),
+                button::Event::ReleaseKey(Key::A),
+                button::Event::PressMod(Modifier::LCtrl),
+                button::Event::PressKey(Key::C),
+                button::Event::ReleaseKey(Key::C),
+                button::Event::ReleaseMod(Modifier::LCtrl),
             ],
         }
     }
@@ -499,7 +558,5 @@ mod tests {
                 Either::Second(never) => never,
             }
         });
-
-        panic!();
     }
 }
