@@ -34,3 +34,9 @@ To flash:
 - plug in the probe,
 - `cd` into either `left` or `right`
 - `cargo run`
+
+### Running tests
+The keyboad library comes with some unit tests:
+```
+cargo test -p tk-pie --target x86_64-unknown-linux-gnu
+```
