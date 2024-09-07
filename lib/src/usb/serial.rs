@@ -148,7 +148,7 @@ impl<'buf> MessageParser<'buf> {
             if self.len > 0 {
                 log::debug!("buf: {:x?}", &self.buf[..self.len]);
             }
-            let mut reader = &mut &self.buf[..self.len];
+            let mut reader = &self.buf[..self.len];
             match HostMsg::unpack(&mut reader) {
                 Ok(r) => {
                     // remove the decoded bytes from buf
