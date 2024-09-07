@@ -15,22 +15,20 @@ pub mod keyboard;
 #[cfg(target_arch = "arm")]
 pub mod panic_handler;
 #[cfg(target_arch = "arm")]
-pub mod uart;
-#[cfg(target_arch = "arm")]
-pub mod usb;
-#[cfg(target_arch = "arm")]
 pub mod ws2812;
 
-pub mod lights;
 pub mod atomics;
 pub mod button;
 pub mod event;
+pub mod hemicom;
 pub mod keypress_handler;
 pub mod keys;
 pub mod layer;
 pub mod layout;
+pub mod lights;
 pub mod logger;
 pub mod rgb;
 pub mod rtt;
 pub mod serial_proto;
+pub mod usb;
 pub mod util;

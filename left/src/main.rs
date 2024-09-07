@@ -25,7 +25,7 @@ use tk_pie::{
     rgb::Rgb,
     util::stall,
     ws2812::Ws2812,
-    {allocator, rtt, uart, usb},
+    {allocator, hemicom::uart, rtt, usb},
 };
 
 #[embassy_executor::main]
@@ -94,7 +94,7 @@ async fn main(_spawner: Spawner) {
 
     neopixel.write(&[Rgb::new(0x00, 0x99, 0x99)]).await;
 
-    let usb_logger = usb::setup_logger_and_keyboard(board.USB, events1).await;
+    let usb_logger = usb::driver::setup_logger_and_keyboard(board.USB, events1).await;
 
     let logger = LogMultiplexer {
         outputs: [rtt_write, usb_logger],

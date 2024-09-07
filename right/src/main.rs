@@ -25,7 +25,7 @@ use tk_pie::{
     rgb::Rgb,
     util::stall,
     ws2812::Ws2812,
-    {allocator, rtt, uart, usb},
+    {allocator, hemicom::uart, rtt, usb},
 };
 
 #[embassy_executor::main]
@@ -91,7 +91,7 @@ async fn main(_spawner: Spawner) {
     uart::start(board.tx, board.rx, board.UART0, half, events2).await;
 
     // TODO: delaying the logger until here is not ideal
-    let usb_logger = usb::setup_logger_and_keyboard(board.USB, events1).await;
+    let usb_logger = usb::driver::setup_logger_and_keyboard(board.USB, events1).await;
 
     let logger = LogMultiplexer {
         outputs: [rtt_logger, usb_logger],

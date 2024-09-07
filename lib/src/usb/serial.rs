@@ -49,7 +49,7 @@ async fn wait_connection(class: &mut CdcAcmClass<'static, Driver<'static, USB>>)
 #[embassy_executor::task]
 async fn serial_task(mut class: CdcAcmClass<'static, Driver<'static, USB>>) {
     let mut write_buf = [0u8; MAX_PACKET_SIZE as usize];
-    let mut read_buf = [0u8; 1024 as usize];
+    let mut read_buf = [0u8; 1024];
     let mut message_parser = MessageParser::new(&mut read_buf);
 
     class.wait_connection().await;
@@ -61,8 +61,8 @@ async fn serial_task(mut class: CdcAcmClass<'static, Driver<'static, USB>>) {
 
                     // if we send a packet containing exactly MAX_PACKET_SIZE bytes, we need to send another
                     // packet to "flush" the buffer.
-                    if OUT.len() == 0 && n == usize::from(MAX_PACKET_SIZE) {
-                        let _ = class.write_packet(&[]).await?;
+                    if OUT.is_empty() && n == usize::from(MAX_PACKET_SIZE) {
+                        class.write_packet(&[]).await?;
                     }
 
                     Ok(())
