@@ -1,0 +1,13 @@
+# Copy this file to /etc/udev/rules.d/
+# If rules fail to reload automatically, you can refresh udev rules
+# with the command "udevadm control --reload"
+
+ACTION!="add|change", GOTO="tk_pie_rules_end"
+
+SUBSYSTEM=="gpio", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+
+SUBSYSTEM!="usb|tty|hidraw", GOTO="tk_pie_rules_end"
+
+ATTRS{idVendor}=="b00b", ATTRS{idProduct}=="1355", MODE="660", GROUP="plugdev", TAG+="uaccess"
+
+LABEL="tk_pie_rules_end"
