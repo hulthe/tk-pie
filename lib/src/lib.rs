@@ -3,6 +3,7 @@
 #![feature(split_array)]
 
 extern crate alloc;
+extern crate cortex_m_rt;
 
 #[cfg(target_arch = "arm")]
 pub mod allocator;
@@ -32,3 +33,8 @@ pub mod rtt;
 pub mod serial_proto;
 pub mod usb;
 pub mod util;
+
+#[cfg(target_arch = "arm")]
+mod entry;
+#[cfg(target_arch = "arm")]
+pub use entry::*;

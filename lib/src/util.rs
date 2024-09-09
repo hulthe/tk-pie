@@ -40,6 +40,14 @@ pub struct SwapCellGuard<'a, T> {
     slot: &'a T,
 }
 
+unsafe impl<T> Send for SwapCellRead<T> {}
+unsafe impl<T> Sync for SwapCellRead<T> {}
+
+// NOTE: Use of SwapCellWrite on higher-prio executors will probably cause a deadlock, avoid
+// implementing Send for SwapCellWrite for this reason
+//unsafe impl<T> Send for SwapCellWrite<T> {}
+//unsafe impl<T> Sync for SwapCellWrite<T> {}
+
 const SLOT_MASK: u32 = 0x80000000;
 const ENTRIES_MASK: u32 = 0x7FFFFFFF;
 
@@ -67,7 +75,7 @@ impl<T> SwapCellWrite<T> {
         slots.rotate_left(active_slot);
         let [active_slot, inactive_slot] = slots;
 
-        // SAFETY: no one elase is allowed to touch the inactive slot.
+        // SAFETY: no one else is allowed to touch the inactive slot.
         unsafe { inactive_slot.get().write(MaybeUninit::new(t)) };
 
         // swap active/inactive slots
@@ -82,6 +90,7 @@ impl<T> SwapCellWrite<T> {
                 break;
             }
 
+            // NOTE: this probably won't work if done on a higher-priority executor
             yield_now().await;
         }
 
