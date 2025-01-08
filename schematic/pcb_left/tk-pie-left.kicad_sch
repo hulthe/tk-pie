@@ -13494,8 +13494,8 @@
 				(justify right)
 			)
 		)
-		(property "Value" "NiceView Header"
-			(at 200.66 107.442 0)
+		(property "Value" "NiceView"
+			(at 202.692 107.188 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13503,7 +13503,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical"
+		(property "Footprint" "Footprints:Nice!View Header"
 			(at 207.01 112.776 0)
 			(effects
 				(font
