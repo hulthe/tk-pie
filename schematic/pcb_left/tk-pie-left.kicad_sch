@@ -7124,73 +7124,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+5V")
-		(at 269.24 128.27 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "550032ce-d28a-4302-b7f4-6666d63c0501")
-		(property "Reference" "#PWR047"
-			(at 265.43 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 273.05 128.2699 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 269.24 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 269.24 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 269.24 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "ef0378bb-8e49-4259-bb3b-b689881fa6ef")
-		)
-		(instances
-			(project "tk-pie-left"
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "#PWR047")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 91.44 45.72 0)
 		(unit 1)
@@ -12571,6 +12504,72 @@
 			(project "tk-pie-left"
 				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
 					(reference "S10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
+		(at 269.24 128.27 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fa9a16b4-cceb-4745-8a14-d61775f4b6a2")
+		(property "Reference" "#PWR065"
+			(at 265.43 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 273.05 128.2701 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 269.24 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 269.24 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 269.24 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7437867f-d6db-4f12-a144-1444e6a64a3d")
+		)
+		(instances
+			(project "tk-pie-left"
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR065")
 					(unit 1)
 				)
 			)
