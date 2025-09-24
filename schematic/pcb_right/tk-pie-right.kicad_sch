@@ -1063,6 +1063,17 @@
 						(type background)
 					)
 				)
+				(rectangle
+					(start 15.24 -5.08)
+					(end 24.13 -13.97)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
 			)
 			(symbol "DFR1075_1_1"
 				(pin input line
@@ -1634,6 +1645,42 @@
 						)
 					)
 					(number "NC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 33.02 -7.62 180)
+					(length 8.89)
+					(name "VBAT-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "VBAT-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 33.02 -11.43 180)
+					(length 8.89)
+					(name "VBAT+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "VBAT+"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3496,6 +3543,244 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "power:+BATT"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+BATT"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+BATT\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power battery"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+BATT_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+BATT_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:-BATT"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "-BATT"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"-BATT\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power battery"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "-BATT_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 1.27) (xy -0.762 1.27) (xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "-BATT_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:GND"
 			(power)
 			(pin_names
@@ -3719,16 +4004,16 @@
 		(uuid "26c9f460-0594-49b2-a060-97dab777ae33")
 	)
 	(junction
+		(at 252.73 299.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "52cc1b8a-2d04-4e3d-8048-9b268c955f09")
+	)
+	(junction
 		(at 240.03 299.72)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "61232139-bf9a-4fe9-8ca0-e30ad855752d")
-	)
-	(junction
-		(at 252.73 299.72)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "7362c7e2-4b23-4465-aeb9-5ceadadefbd4")
 	)
 	(junction
 		(at 224.79 274.32)
@@ -3750,10 +4035,6 @@
 		(at 264.16 276.86)
 		(uuid "4aafc141-196a-4649-9e21-3593f45b379c")
 	)
-	(no_connect
-		(at 273.05 309.88)
-		(uuid "97c0492a-af49-4ad7-a1b4-caaf7926e36f")
-	)
 	(wire
 		(pts
 			(xy 31.75 121.92) (xy 33.02 121.92)
@@ -3763,6 +4044,16 @@
 			(type default)
 		)
 		(uuid "03c9be30-ddbe-4e1b-b282-79e931330c18")
+	)
+	(wire
+		(pts
+			(xy 252.73 299.72) (xy 278.13 299.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "072b5653-d42f-4869-8415-c788d968e074")
 	)
 	(wire
 		(pts
@@ -4036,16 +4327,6 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 299.72) (xy 252.73 299.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "710bc2c4-0f73-482c-9826-3bd9cb509101")
-	)
-	(wire
-		(pts
 			(xy 115.57 107.95) (xy 121.92 107.95)
 		)
 		(stroke
@@ -4236,7 +4517,7 @@
 	)
 	(wire
 		(pts
-			(xy 252.73 299.72) (xy 278.13 299.72)
+			(xy 240.03 299.72) (xy 252.73 299.72)
 		)
 		(stroke
 			(width 0)
@@ -4814,16 +5095,6 @@
 		)
 		(uuid "d52988aa-8717-4404-87bc-ec15854a0f22")
 	)
-	(label "VBAT"
-		(at 69.85 128.27 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "dd4e1481-8d50-4ab3-ba4d-b7e18e91d874")
-	)
 	(label "S1"
 		(at 256.54 22.86 180)
 		(effects
@@ -4943,16 +5214,6 @@
 			(justify right bottom)
 		)
 		(uuid "f9d8e126-e03d-4ade-aca6-8174e0a04d36")
-	)
-	(label "VBAT"
-		(at 290.83 262.89 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "fe7829c0-a34b-4336-9d33-3c0102e4303b")
 	)
 	(symbol
 		(lib_id "library:MX_SW_SOCKET_RGB_REV")
@@ -5493,6 +5754,73 @@
 			(project "tk-pie-left"
 				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
 					(reference "#PWR059")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 290.83 262.89 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1cb3dff9-9436-4f11-83b1-27deb674b9de")
+		(property "Reference" "#PWR071"
+			(at 287.02 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT+"
+			(at 294.64 262.8899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 290.83 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 290.83 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 290.83 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1bb86380-532d-4f15-9b74-f09dc9e192b3")
+		)
+		(instances
+			(project "tk-pie-right"
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR071")
 					(unit 1)
 				)
 			)
@@ -8496,73 +8824,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:GND")
-		(at 69.85 130.81 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "7f652e08-6f34-4307-8fd2-b53df25f8c00")
-		(property "Reference" "#PWR052"
-			(at 76.2 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 73.66 130.8099 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 69.85 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 69.85 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 69.85 130.81 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "649ab9df-9cd6-42d9-b3f0-0f2220365bd0")
-		)
-		(instances
-			(project "tk-pie-left"
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "#PWR052")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector:Conn_01x01_Pin")
 		(at 163.83 167.64 90)
 		(unit 1)
@@ -9482,6 +9743,140 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+BATT")
+		(at 69.85 128.27 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8e47b542-5b80-43ee-80ce-8ac1358c16fb")
+		(property "Reference" "#PWR073"
+			(at 66.04 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT+"
+			(at 73.66 128.2699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 69.85 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 69.85 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 69.85 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a1529d7c-70cd-4f8b-a5d7-51473f404c14")
+		)
+		(instances
+			(project "tk-pie-right"
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR073")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 72.39 27.94 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "934159a5-ea05-4123-84f4-2da1a9ca6c3d")
+		(property "Reference" "#PWR066"
+			(at 68.58 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT+"
+			(at 76.2 27.9399 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 72.39 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 72.39 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "bd7525de-a905-4322-94c4-c52c148879c7")
+		)
+		(instances
+			(project ""
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR066")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "library:ME2108C50M5G")
 		(at 267.97 284.48 0)
 		(unit 1)
@@ -10141,72 +10536,6 @@
 			(project "tk-pie-left"
 				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
 					(reference "#PWR020")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 252.73 299.72 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a2c3b37d-feb6-4f1e-9736-0404cf977326")
-		(property "Reference" "#PWR075"
-			(at 252.73 306.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 252.73 304.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 252.73 299.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 252.73 299.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 252.73 299.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "dcdab213-2fa6-4982-8783-7d5ce4fcdec2")
-		)
-		(instances
-			(project "tk-pie-left"
-				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
-					(reference "#PWR075")
 					(unit 1)
 				)
 			)
@@ -11109,6 +11438,12 @@
 		(pin "20"
 			(uuid "03375bb7-f386-4d29-ae43-92d12bf1ce44")
 		)
+		(pin "VBAT+"
+			(uuid "502c7a95-94af-439f-ac1a-de8335428fef")
+		)
+		(pin "VBAT-"
+			(uuid "d70695f7-0681-4329-b9fb-5266b095b3bb")
+		)
 		(instances
 			(project ""
 				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
@@ -11982,6 +12317,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:-BATT")
+		(at 69.85 130.81 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e879ead7-e47e-4c34-9183-4cd970901b0b")
+		(property "Reference" "#PWR072"
+			(at 66.04 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT-"
+			(at 73.66 130.8099 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 69.85 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 69.85 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"-BATT\""
+			(at 69.85 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4480c0bc-cbfb-4583-b0fc-c5be2e5eaff8")
+		)
+		(instances
+			(project "tk-pie-right"
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR072")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 69.85 44.45 90)
 		(unit 1)
@@ -12246,6 +12648,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:-BATT")
+		(at 252.73 299.72 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ef94ab0b-68dc-4fa8-ae77-8e36c037bdc3")
+		(property "Reference" "#PWR070"
+			(at 252.73 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT-"
+			(at 252.73 304.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 252.73 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 252.73 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"-BATT\""
+			(at 252.73 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3f0a10d7-7d1b-40a8-b7ea-ab13addac4f2")
+		)
+		(instances
+			(project "tk-pie-right"
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR070")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Diode:SS14")
 		(at 267.97 262.89 0)
 		(unit 1)
@@ -12439,6 +12907,73 @@
 			(project "tk-pie-left"
 				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
 					(reference "#PWR060")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:-BATT")
+		(at 72.39 24.13 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f34c2478-34ad-4076-9b9c-8464cdd12190")
+		(property "Reference" "#PWR065"
+			(at 68.58 24.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT-"
+			(at 76.2 24.1299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 72.39 24.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 24.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"-BATT\""
+			(at 72.39 24.13 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "62cdcf55-456a-4783-b266-c8363c1bb5c0")
+		)
+		(instances
+			(project ""
+				(path "/9b6bc1bb-4d53-4a7c-b909-4e79c2146edb"
+					(reference "#PWR065")
 					(unit 1)
 				)
 			)
