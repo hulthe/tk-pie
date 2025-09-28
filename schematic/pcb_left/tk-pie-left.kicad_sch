@@ -5065,7 +5065,7 @@
 		)
 		(uuid "ca12cae1-c9e6-4071-b684-948b36a998e7")
 	)
-	(label "VBAT+"
+	(label "VBAT"
 		(at 194.31 123.19 0)
 		(effects
 			(font
@@ -12668,7 +12668,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "VBAT-"
+		(property "Value" "GND"
 			(at 198.12 125.7299 90)
 			(effects
 				(font
