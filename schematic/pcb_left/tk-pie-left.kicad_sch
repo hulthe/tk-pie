@@ -4,6 +4,11 @@
 	(generator_version "9.0")
 	(uuid "9b6bc1bb-4d53-4a7c-b909-4e79c2146edb")
 	(paper "A4")
+	(title_block
+		(title "tk-pie-left")
+		(date "2025-11-09")
+		(rev "2.0")
+	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x01_Pin"
 			(pin_names

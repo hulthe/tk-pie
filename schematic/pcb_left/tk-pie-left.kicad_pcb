@@ -7,6 +7,11 @@
 		(legacy_teardrops no)
 	)
 	(paper "A5")
+	(title_block
+		(title "tk-pie-left")
+		(date "2025-11-09")
+		(rev "2.0")
+	)
 	(layers
 		(0 "F.Cu" signal)
 		(2 "B.Cu" signal)
@@ -13895,6 +13900,18 @@
 				(size 1 1)
 				(thickness 0.153)
 			)
+		)
+	)
+	(gr_text "tk-pie 2.0"
+		(at 37.025 86.725 311.801)
+		(layer "F.SilkS")
+		(uuid "b06ec66c-716b-42b9-9f33-39a83accddae")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.1875)
+			)
+			(justify left bottom)
 		)
 	)
 	(gr_text "RGB"
