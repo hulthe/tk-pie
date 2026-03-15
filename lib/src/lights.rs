@@ -1,22 +1,25 @@
 pub mod shaders;
 
-use crate::ws2812::Ws2812;
-use embassy_rp::pio;
+use core::future::Future;
 use embassy_sync::mutex::Mutex;
 
 use crate::{rgb::Rgb, util::CS};
 
-pub struct Lights<P: pio::Instance + 'static, const N: usize> {
-    state: Mutex<CS, State<P, N>>,
+pub struct Lights<D: LightDriver, const N: usize> {
+    state: Mutex<CS, State<D, N>>,
 }
 
-struct State<P: pio::Instance + 'static, const N: usize> {
+struct State<D, const N: usize> {
     colors: [Rgb; N],
-    driver: Ws2812<P>,
+    driver: D,
 }
 
-impl<P: pio::Instance, const N: usize> Lights<P, N> {
-    pub const fn new(driver: Ws2812<P>) -> Self {
+pub trait LightDriver {
+    fn write(&mut self, colors: &[Rgb]) -> impl Future<Output = ()>;
+}
+
+impl<D: LightDriver, const N: usize> Lights<D, N> {
+    pub const fn new(driver: D) -> Self {
         Lights {
             state: Mutex::new(State {
                 colors: [Rgb::new(0, 0, 0); N],

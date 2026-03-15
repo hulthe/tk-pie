@@ -40,6 +40,11 @@ impl Rgb {
     pub fn slice_as_u32s(rgbs: &[Rgb]) -> &[u32] {
         cast_slice(rgbs)
     }
+
+    pub const BLACK: Rgb = Rgb::new(0, 0, 0);
+    pub const RED: Rgb = Rgb::new(0xff, 0, 0);
+    pub const GREEN: Rgb = Rgb::new(0, 0xff, 0);
+    pub const BLUE: Rgb = Rgb::new(0, 0, 0xff);
 }
 
 impl Debug for Rgb {

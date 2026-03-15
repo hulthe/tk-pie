@@ -17,6 +17,7 @@ embassy-executor = { version = "0.5.0", features = ["nightly", "nightly", "execu
 embassy-sync = "0.5.0"
 embassy-time = "0.3.0"
 embassy-futures = "0.1.1"
+embassy-usb = { version = "0.1.0", default-features = false }
 log = "0.4.17"
 pio = "0.2.1"
 pio-proc = "0.2.1"
@@ -36,6 +37,7 @@ glam = { version = "0.25.0", default-features = false, features = ["libm"] }
 msgpck = { version = "0.2.8", features = ["alloc"] }
 #atomic-polyfill = "1.0.2"
 portable-atomic = { version = "1.6.0", default-features = false }
+rend = { version = "0.4.2", features = ["bytemuck"], default-features = false }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 embassy-executor = { version = "0.5.0", features = ["arch-std"] }
@@ -44,7 +46,7 @@ simple_logger = "4"
 
 [target.thumbv6m-none-eabi.dependencies]
 embassy-rp = { version = "0.1.0", features = ["time-driver", "critical-section-impl"] }
-embassy-executor = { version = "0.5.0", features = ["arch-cortex-m"] }
+embassy-executor = { version = "0.5.0", features = ["arch-cortex-m", "executor-interrupt"] }
 embassy-usb = { version = "0.1.0", features = ["usbd-hid"] }
 embassy-usb-logger = "0.1.0"
 embassy-usb-driver = "0.1.0"

@@ -4,6 +4,7 @@ use embassy_rp::pio::{self, FifoJoin, Instance, Pio, PioPin, ShiftConfig, ShiftD
 use embassy_rp::{Peripheral, PeripheralRef};
 use fixed::FixedU32;
 
+use crate::lights::LightDriver;
 use crate::rgb::Rgb;
 
 pub struct Ws2812<P: pio::Instance + 'static> {
@@ -84,8 +85,10 @@ impl<P: Instance> Ws2812<P> {
             dma: PeripheralRef::new(dma.degrade()),
         }
     }
+}
 
-    pub async fn write(&mut self, colors: &[Rgb]) {
+impl<P: Instance> LightDriver for Ws2812<P> {
+    async fn write(&mut self, colors: &[Rgb]) {
         let colors = Rgb::slice_as_u32s(colors);
         self.sm.tx().dma_push(self.dma.reborrow(), colors).await;
     }

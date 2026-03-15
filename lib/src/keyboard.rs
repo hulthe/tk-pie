@@ -3,7 +3,6 @@ mod lights;
 use core::sync::atomic::Ordering;
 
 use alloc::vec::Vec;
-use embassy_executor::Spawner;
 use embassy_rp::{
     gpio::{AnyPin, Input, Pin, Pull},
     peripherals::PIO1,
@@ -29,6 +28,7 @@ use crate::{
     usb::serial::serial_send,
     util::{SwapCell, SwapCellRead, CS},
     ws2812::Ws2812,
+    Spawners,
 };
 
 pub struct KeyboardConfig {
@@ -52,7 +52,7 @@ struct State {
     layers: SwapCellRead<Layers>,
     /// Array of LED indices of each switch
     led_map: [usize; SWITCH_COUNT],
-    lights: Lights<PIO1, SWITCH_COUNT>,
+    lights: Lights<Ws2812<PIO1>, SWITCH_COUNT>,
 }
 
 /// Number of [KbEvents] returned by [KeyboardConfig::create].
@@ -70,19 +70,16 @@ pub struct KbEvents {
     pub publisher: ImmediatePublisher<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
 }
 
-pub struct KbEventsTx<'a> {
-    publisher:
-        &'a mut ImmediatePublisher<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
+pub struct KbEventsTx {
+    publisher: ImmediatePublisher<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
 }
 
-pub struct KbEventsRx<'a> {
-    subscriber: &'a mut Subscriber<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
+pub struct KbEventsRx {
+    subscriber: Subscriber<'static, CS, Event, KB_EVENT_CAP, ACTUAL_KB_SUBSCRIBERS, 0>,
 }
 
 impl KeyboardConfig {
-    pub async fn create(self) -> Option<[KbEvents; KB_SUBSCRIBERS]> {
-        let spawner = Spawner::for_current_executor().await;
-
+    pub async fn create(self, spawners: Spawners) -> Option<[KbEvents; KB_SUBSCRIBERS]> {
         if self.layers.is_empty() {
             error!("no layers defined");
             return None;
@@ -123,13 +120,13 @@ impl KeyboardConfig {
         });
 
         for (i, pin) in self.pins.into_iter().enumerate() {
-            if spawner.spawn(switch_task(i, pin, state)).is_err() {
+            if spawners.high.spawn(switch_task(i, pin, state)).is_err() {
                 error!("failed to spawn switch task, pool_size mismatch?");
                 break;
             }
         }
 
-        spawner.must_spawn(layer_switch_task(
+        spawners.med.must_spawn(layer_switch_task(
             KbEvents {
                 publisher: KB_EVENTS.immediate_publisher(),
                 subscriber: KB_EVENTS
@@ -139,7 +136,7 @@ impl KeyboardConfig {
             state,
         ));
 
-        spawner.must_spawn(lights::task(
+        spawners.low.must_spawn(lights::task(
             KbEvents {
                 publisher: KB_EVENTS.immediate_publisher(),
                 subscriber: KB_EVENTS
@@ -169,24 +166,24 @@ impl KbEvents {
         self.subscriber.next_message_pure().await
     }
 
-    pub fn split(&mut self) -> (KbEventsRx, KbEventsTx) {
+    pub fn split(self) -> (KbEventsRx, KbEventsTx) {
         let tx = KbEventsTx {
-            publisher: &mut self.publisher,
+            publisher: self.publisher,
         };
         let rx = KbEventsRx {
-            subscriber: &mut self.subscriber,
+            subscriber: self.subscriber,
         };
         (rx, tx)
     }
 }
 
-impl KbEventsRx<'_> {
+impl KbEventsRx {
     pub async fn recv(&mut self) -> Event {
         self.subscriber.next_message_pure().await
     }
 }
 
-impl KbEventsTx<'_> {
+impl KbEventsTx {
     pub fn send(&mut self, event: Event) {
         self.publisher.publish_immediate(event);
     }

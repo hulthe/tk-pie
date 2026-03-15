@@ -1,3 +1,5 @@
+use crate::keyboard::KeyboardConfig;
+use crate::ws2812::Ws2812;
 use embassy_rp::{peripherals::*, Peripherals};
 
 /// Pinouts for the ItsyBitsy
@@ -45,6 +47,25 @@ pub struct Board {
     pub d12: PIN_10,
     pub d13: PIN_11,
     pub neopixel: PIN_17,
+    pub neopixel_power: PIN_16,
+}
+
+/// A [Board] with the keyboard pins mapped.
+#[allow(dead_code, non_snake_case)]
+pub struct MappedBoard {
+    pub USB: USB,
+    pub UART0: UART0,
+    pub UART1: UART1,
+
+    pub keyboard: KeyboardConfig,
+
+    pub rx: PIN_1,
+    pub tx: PIN_0,
+
+    /// The pin controlling the onboard ItsyBitsy neopixel
+    pub neopixel: Ws2812<PIO0>,
+
+    /// The pin controlling power for the onboard ItsyBitsy neopixel
     pub neopixel_power: PIN_16,
 }
 

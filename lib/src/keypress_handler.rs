@@ -49,6 +49,7 @@ pub async fn keypress_handler(
         }
     }
 
+    /// Press a button, and treat [ModTap] as [Mod].
     async fn slow_press(
         output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
         shift_held: &mut ShiftHeld,
@@ -126,6 +127,7 @@ pub async fn keypress_handler(
         output.publish_immediate(event);
     }
 
+    /// Release a button, and treat [ModTap] as [Mod].
     async fn slow_release(
         output: &mut Pub<'_, impl PubSubBehavior<button::Event>, button::Event>,
         shift_held: &mut ShiftHeld,
@@ -177,10 +179,14 @@ pub async fn keypress_handler(
         };
 
         let event = futures::select_biased! {
+            // wait for the next switch event
             event = input.next_message().fuse() => event,
+
+            // wait for any modtaps to time out
             event = modtap_timeout.fuse() => {
                 // first element in queue timed out, and will be treated as a Mod
                 let &Button::ModTap(..) = &event.button else {
+                    // this is a bug and should never happen
                     error!("first element in queue wasn't a modtap, wtf?");
                     continue;
                 };
@@ -265,10 +271,11 @@ pub async fn keypress_handler(
 
                 match button {
                     Button::ModTap(k, _) => {
-                        // check if modtap in queue
+                        // if button is a ModTap, check if it's already in the queue in queue
                         if let Some(position_in_queue) = position_in_queue {
-                            // If the modtap was still in the queue, it hasn't been resolved as a mod
-                            // yet. Therefore, it is a Tap. Resolve all ModTaps before this one as Mods
+                            // If the modtap was still in the queue, it hasn't been resolved as a
+                            // Mod yet. Therefore, it is a Tap. Resolve all ModTaps before this one
+                            // as Mods as well.
                             debug!("modtap was still in queue: {k:?}");
                             for _ in 0..position_in_queue {
                                 let prev_event = queue.pop_front().unwrap();
@@ -306,6 +313,16 @@ pub async fn keypress_handler(
                     }
                     _ => {}
                 }
+
+                // then, pop and press all non-modtaps from the front of the queue
+                while let Some(event) = queue.front() {
+                    if let Button::ModTap(..) = &event.button {
+                        break;
+                    }
+
+                    slow_press(output, &mut shift_held, &event.button).await;
+                    let _ = queue.pop_front();
+                }
             }
         }
     }
@@ -317,6 +334,7 @@ mod tests {
 
     use super::*;
 
+    use crate::{button::Modifier, keys::Key};
     use alloc::vec;
     use alloc::vec::Vec;
     use embassy_futures::{
@@ -342,15 +360,21 @@ mod tests {
         };
     }
 
+    /// A delay short enough to not trigger any modtaps.
     const SHORT: Duration = Duration::from_millis(1);
+
+    /// A delay long enough to trigger any modtaps.
     const LONG: Duration = Duration::from_millis(160);
 
     timing_test! {
-        modtap_mod,
+        modtap_modtap_mod,
         Test {
             input: vec![
+                // press first modtap
                 (0, true, SHORT),
+                // press second modtap
                 (1, true, SHORT),
+                // release second modtap, should resolve 0 as mod and 1 as key
                 (1, false, SHORT),
                 (0, false, SHORT),
             ],
@@ -362,13 +386,39 @@ mod tests {
             ],
         }
     }
+
     timing_test! {
-        modtap_tap,
+        key_modtap_tap,
         Test {
             input: vec![
+                // press modtap
                 (0, true, SHORT),
-                (1, true, SHORT),
+                // press key
+                (2, true, SHORT),
+                // release modtap, should resolve itself as a key
                 (0, false, SHORT),
+                (2, false, SHORT),
+            ],
+            expected: vec![
+                button::Event::PressKey(Key::A),
+                button::Event::ReleaseKey(Key::A),
+                button::Event::PressKey(Key::C),
+                button::Event::ReleaseKey(Key::C),
+            ],
+        }
+    }
+
+    timing_test! {
+        modtap_modtap_tap,
+        Test {
+            input: vec![
+                // press first modtap
+                (0, true, SHORT),
+                // press second modtap
+                (1, true, SHORT),
+                // release first modtap, should resolve itself as a key
+                (0, false, SHORT),
+                // release second modtap, should resolve itself as a key
                 (1, false, SHORT),
             ],
             expected: vec![
@@ -376,6 +426,33 @@ mod tests {
                 button::Event::ReleaseKey(Key::A),
                 button::Event::PressKey(Key::B),
                 button::Event::ReleaseKey(Key::B),
+            ],
+        }
+    }
+
+    timing_test! {
+        modtap_modtap_tap_into_key,
+        Test {
+            input: vec![
+                // press first modtap
+                (0, true, SHORT),
+                // press second modtap
+                (1, true, SHORT),
+                // release first modtap, should resolve itself as a key
+                (0, false, SHORT),
+                // press key
+                (2, true, SHORT),
+                // release key, should resolve second modtap as mod
+                (2, false, SHORT),
+                (1, false, SHORT),
+            ],
+            expected: vec![
+                button::Event::PressKey(Key::A),
+                button::Event::ReleaseKey(Key::A),
+                button::Event::PressMod(Modifier::LCtrl),
+                button::Event::PressKey(Key::C),
+                button::Event::ReleaseKey(Key::C),
+                button::Event::ReleaseMod(Modifier::LCtrl),
             ],
         }
     }
@@ -492,13 +569,11 @@ mod tests {
             match r {
                 Either::First(((), Ok(()))) => {}
                 Either::First(((), Err((msg, got)))) => panic!(
-                    "timing test failed due to {msg}.\nexpected={:#?} got={:#?}",
+                    "timing test failed ({msg})\nexpected these events: {:#?}\nbut got these: {:#?}",
                     test.expected, got
                 ),
                 Either::Second(never) => never,
             }
         });
-
-        panic!();
     }
 }
