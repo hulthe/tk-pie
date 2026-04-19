@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 use embassy_rp::{
     gpio::{AnyPin, Input, Pin, Pull},
     peripherals::PIO1,
+    Peri,
 };
 use embassy_sync::pubsub::{ImmediatePublisher, PubSubChannel, Subscriber};
 use embassy_time::{Duration, Instant, Timer};
@@ -35,7 +36,7 @@ pub struct KeyboardConfig {
     /// Which board is this.
     pub half: Half,
     /// Array of input pins of each switch
-    pub pins: [AnyPin; SWITCH_COUNT],
+    pub pins: [Peri<'static, AnyPin>; SWITCH_COUNT],
     /// Array of LED indices of each switch
     pub led_map: [usize; SWITCH_COUNT],
     pub led_driver: Ws2812<PIO1>,
@@ -195,7 +196,7 @@ pub const DEBOUNCE_THRESHOLD: Duration = Duration::from_millis(15);
 
 /// Task for monitoring a single switch pin, and handling button presses.
 #[embassy_executor::task(pool_size = 18)]
-async fn switch_task(switch_num: usize, pin: AnyPin, state: &'static State) -> ! {
+async fn switch_task(switch_num: usize, pin: Peri<'static, AnyPin>, state: &'static State) -> ! {
     let _pin_nr = pin.pin();
     let mut pin = Input::new(pin, Pull::Up);
     let events = KB_EVENTS.immediate_publisher();

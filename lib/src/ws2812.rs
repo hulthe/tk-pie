@@ -1,7 +1,7 @@
 use embassy_rp::dma::{self, AnyChannel};
 use embassy_rp::interrupt::typelevel::Binding;
-use embassy_rp::pio::{self, FifoJoin, Instance, Pio, PioPin, ShiftConfig, ShiftDirection};
-use embassy_rp::{Peripheral, PeripheralRef};
+use embassy_rp::pio::{self, Assembler, FifoJoin, Pio, PioPin, ShiftConfig, ShiftDirection};
+use embassy_rp::Peri;
 use fixed::FixedU32;
 
 use crate::lights::LightDriver;
@@ -9,21 +9,21 @@ use crate::rgb::Rgb;
 
 pub struct Ws2812<P: pio::Instance + 'static> {
     sm: pio::StateMachine<'static, P, 0>,
-    dma: PeripheralRef<'static, AnyChannel>,
+    dma: Peri<'static, AnyChannel>,
 }
 
-impl<P: Instance> Ws2812<P> {
+impl<P: pio::Instance> Ws2812<P> {
     pub fn new(
-        pio: impl Peripheral<P = P> + 'static,
+        pio: Peri<'static, P>,
         irqs: impl Binding<P::Interrupt, pio::InterruptHandler<P>>,
         dma: impl dma::Channel,
-        pin: impl PioPin,
+        pin: Peri<'static, PioPin>,
     ) -> Self {
         let mut pio = Pio::new(pio, irqs);
         let mut sm = pio.sm0;
         // prepare the PIO program
         let side_set = ::pio::SideSet::new(false, 1, false);
-        let mut a: ::pio::Assembler<32> = ::pio::Assembler::new_with_side_set(side_set);
+        let mut a: Assembler<32> = Assembler::new_with_side_set(side_set);
 
         const T1: u8 = 2; // start bit
         const T2: u8 = 5; // data bit
@@ -87,9 +87,12 @@ impl<P: Instance> Ws2812<P> {
     }
 }
 
-impl<P: Instance> LightDriver for Ws2812<P> {
+impl<P: pio::Instance> LightDriver for Ws2812<P> {
     async fn write(&mut self, colors: &[Rgb]) {
         let colors = Rgb::slice_as_u32s(colors);
-        self.sm.tx().dma_push(self.dma.reborrow(), colors).await;
+        self.sm
+            .tx()
+            .dma_push(self.dma.reborrow(), colors, false) // TODO: We assumed false here, maybe double check that.
+            .await;
     }
 }

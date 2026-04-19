@@ -27,9 +27,9 @@ type Device = UART0;
 
 /// Spawn a task to forward keyboard and usb events between keyboard halves.
 pub async fn start(
-    tx: PIN_0,
-    rx: PIN_1,
-    uart: Device,
+    tx: Peri<'static, PIN_0>,
+    rx: Peri<'static, PIN_1>,
+    uart: Peri<'static, Device>,
     board: Half,
     spawners: Spawners,
     events: KbEvents,
@@ -45,26 +45,22 @@ pub async fn start(
 
     let uart = embassy_rp::uart::BufferedUart::new(
         uart,
-        Irqs,
         tx,
         rx,
+        Irqs,
         TX_BUF.init_with(|| [0u8; 256]),
         RX_BUF.init_with(|| [0u8; 256]),
         config,
     );
 
-    let (rx, tx) = uart.split();
+    let (tx, rx) = uart.split();
     let (events_rx, events_tx) = events.split();
     spawners.med.must_spawn(send_messages(events_rx, tx, board));
     spawners.high.must_spawn(receive_messages(events_tx, rx));
 }
 
 #[embassy_executor::task]
-async fn send_messages(
-    mut events: KbEventsRx,
-    mut tx: BufferedUartTx<'static, Device>,
-    this_half: Half,
-) -> ! {
+async fn send_messages(mut events: KbEventsRx, mut tx: BufferedUartTx, this_half: Half) -> ! {
     let mut buf = [0u8; HEADER_LEN + MAX_BODY_LEN];
     let mut counter = 0u8;
     let mut seqnum = 0u16;
@@ -110,7 +106,7 @@ async fn send_messages(
 }
 
 #[embassy_executor::task]
-async fn receive_messages(mut events: KbEventsTx, mut rx: BufferedUartRx<'static, Device>) -> ! {
+async fn receive_messages(mut events: KbEventsTx, mut rx: BufferedUartRx) -> ! {
     let mut buf: heapless::Vec<u8, RX_BUF_CAP> = Vec::new();
     let mut newest_seen_seqnum = 0u16;
 

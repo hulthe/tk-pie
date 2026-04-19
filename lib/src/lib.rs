@@ -1,6 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(type_alias_impl_trait)]
-#![feature(split_array)]
+#![feature(impl_trait_in_assoc_type)]
 
 extern crate alloc;
 extern crate cortex_m_rt;

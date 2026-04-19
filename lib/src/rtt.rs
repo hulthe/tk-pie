@@ -1,7 +1,7 @@
 use core::{cell::RefCell, fmt::Write};
 
 use critical_section::Mutex;
-use rtt_target::{rtt_init, UpChannel};
+use rtt_target::{rtt_init, ChannelMode::NoBlockSkip, UpChannel};
 
 use crate::logger::{LogOutput, TimestampedRecord};
 
@@ -23,8 +23,8 @@ pub fn init_rtt_logger() -> &'static RttLogger {
     let channels = rtt_init! {
         up: {
             0: {
-                size: 1024
-                mode: NoBlockSkip
+                size: 1024,
+                mode: NoBlockSkip,
                 name: "Terminal"
             }
         }
