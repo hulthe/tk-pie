@@ -1,6 +1,6 @@
 use crate::keyboard::KeyboardConfig;
 use crate::ws2812::Ws2812;
-use embassy_rp::{peripherals::*, Peripherals};
+use embassy_rp::{peripherals::*, Peri, Peripherals};
 
 /// Pinouts for the ItsyBitsy
 #[allow(dead_code, non_snake_case)]

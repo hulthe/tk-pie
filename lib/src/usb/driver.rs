@@ -1,5 +1,5 @@
 use embassy_executor::Spawner;
-use embassy_rp::{peripherals::USB, usb::Driver};
+use embassy_rp::{peripherals::USB, usb::Driver, Peri};
 use embassy_sync::pubsub::PubSubBehavior;
 use embassy_usb::{Builder, Config, Handler, UsbDevice};
 use static_cell::StaticCell;
@@ -57,7 +57,10 @@ impl Handler for UsbHandler {
     }
 }
 
-pub async fn setup_logger_and_keyboard(usb: USB, events: KbEvents) -> &'static UsbSerial {
+pub async fn setup_logger_and_keyboard(
+    usb: Peri<'static, USB>,
+    events: KbEvents,
+) -> &'static UsbSerial {
     let mut builder = builder(usb);
 
     let usb_serial = serial::setup(&mut builder).await;
@@ -66,12 +69,15 @@ pub async fn setup_logger_and_keyboard(usb: USB, events: KbEvents) -> &'static U
     log::info!("building usb device");
     let usb = builder.build();
     log::info!("spawning usb task");
-    Spawner::for_current_executor().await.must_spawn(run(usb));
+    // TODO: Unsafe, check.
+    unsafe {
+        Spawner::for_current_executor().await.must_spawn(run(usb));
+    }
 
     usb_serial
 }
 
-pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
+pub fn builder(usb: Peri<'static, USB>) -> Builder<'static, Driver<'static, USB>> {
     // calling init here can't panic because this function can't be called
     // twice since we are taking ownership of the only USB peripheral.
     let state = STATE.init_with(|| State {
@@ -103,7 +109,6 @@ pub fn builder(usb: USB) -> Builder<'static, Driver<'static, USB>> {
     let mut builder = Builder::new(
         driver,
         config,
-        &mut state.device_descriptor,
         &mut state.config_descriptor,
         &mut state.bos_descriptor,
         &mut state.msos_descriptor,
