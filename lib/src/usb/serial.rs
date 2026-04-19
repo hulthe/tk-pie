@@ -28,7 +28,8 @@ pub static IN: Channel<CS, HostMsg, 16> = Channel::new(); // TODO: read from thi
 pub struct UsbSerial;
 
 pub async fn setup(usb_builder: &mut Builder<'static, Driver<'static, USB>>) -> &'static UsbSerial {
-    let spawner = Spawner::for_current_executor().await;
+    // TODO: FIXME: unsafe
+    let spawner = unsafe { Spawner::for_current_executor().await };
 
     static STATE: StaticCell<cdc_acm::State<'static>> = StaticCell::new();
     let state = STATE.init(cdc_acm::State::new());
