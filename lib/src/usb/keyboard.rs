@@ -95,25 +95,25 @@ pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>, events:
 }
 
 impl RequestHandler for Handler {
-    fn get_report(&self, id: ReportId, buf: &mut [u8]) -> Option<usize> {
+    fn get_report(&mut self, id: ReportId, buf: &mut [u8]) -> Option<usize> {
         log::info!("get_report({id:?}, {buf:?})");
         let _ = (id, buf);
         None
     }
 
-    fn set_report(&self, id: ReportId, data: &[u8]) -> embassy_usb::control::OutResponse {
+    fn set_report(&mut self, id: ReportId, data: &[u8]) -> embassy_usb::control::OutResponse {
         log::info!("set_report({id:?}, {data:?})");
         let _ = (id, data);
         OutResponse::Rejected
     }
 
-    fn get_idle_ms(&self, id: Option<ReportId>) -> Option<u32> {
+    fn get_idle_ms(&mut self, id: Option<ReportId>) -> Option<u32> {
         log::info!("get_idle_ms({id:?})");
         let _ = id;
         None
     }
 
-    fn set_idle_ms(&self, id: Option<ReportId>, duration_ms: u32) {
+    fn set_idle_ms(&mut self, id: Option<ReportId>, duration_ms: u32) {
         log::info!("set_idle_ms({id:?}, {duration_ms})");
         let _ = (id, duration_ms);
     }
