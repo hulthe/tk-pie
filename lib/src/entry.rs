@@ -70,7 +70,7 @@ pub fn run(init: InitFn) -> ! {
 
 #[embassy_executor::task]
 async fn main_task(
-    board: Peri<'static, Board>,
+    board: Board,
     init: InitFn,
     rtt_logger: &'static dyn LogOutput,
     spawners: Spawners,
