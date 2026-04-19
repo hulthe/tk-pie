@@ -5,7 +5,6 @@ use embassy_rp::peripherals::{PIN_0, PIN_1, UART0};
 use embassy_rp::uart::{self, BufferedUartRx, BufferedUartTx, DataBits, Parity, StopBits};
 use embassy_rp::Peri;
 use embassy_sync::pubsub::PubSubBehavior;
-use embassy_time::{Duration, Timer};
 use embedded_io_async::{Read, Write};
 use futures::{select_biased, FutureExt};
 use heapless::Vec;

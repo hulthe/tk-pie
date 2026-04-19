@@ -45,8 +45,6 @@ struct Context {
 
     /// Signalled by [report_task] when a report is sent.
     report_signal: Signal<CS, ()>,
-
-    handler: Handler,
 }
 
 /// Set up a USB HID keyboard. This function panics if called more than once.
@@ -62,8 +60,13 @@ pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>, events:
                 unsent: EMPTY_KEYBOARD_REPORT,
             }),
             report_signal: Signal::new(),
-            handler: Handler,
         })
+    };
+
+    let request_handler = {
+        static USB_HANDLER: StaticCell<Handler> = StaticCell::new();
+        // this panics if the functon is called twice
+        USB_HANDLER.init(Handler)
     };
 
     let hid_state = {
@@ -75,14 +78,15 @@ pub async fn setup(builder: &mut Builder<'static, Driver<'static, USB>>, events:
     let config = hid::Config {
         //report_descriptor: MouseReport::desc(),
         report_descriptor: KeyboardReport::desc(),
-        request_handler: Some(&context.handler),
+        request_handler: Some(request_handler),
         poll_ms: 2,
         max_packet_size: MAX_PACKET_SIZE as u16,
     };
 
     let stream = HidStream::new(builder, hid_state, config);
 
-    let spawner = Spawner::for_current_executor().await;
+    // TODO: FIXME: safety comment or use something else
+    let spawner = unsafe { Spawner::for_current_executor().await };
 
     spawner.must_spawn(report_task(stream, context));
     spawner.must_spawn(event_listener_task(events, context));
