@@ -19,7 +19,7 @@ impl<P: pio::Instance> Ws2812<P> {
         pio: Peri<'static, P>,
         irqs: impl Binding<P::Interrupt, pio::InterruptHandler<P>>,
         dma: impl dma::Channel,
-        pin: Peri<'static, PioPin>,
+        pin: Peri<'static, impl PioPin>,
     ) -> Self {
         let mut pio = Pio::new(pio, irqs);
         let mut sm = pio.sm0;
