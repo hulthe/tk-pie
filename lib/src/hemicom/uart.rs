@@ -3,6 +3,7 @@
 use bytemuck::cast;
 use embassy_rp::peripherals::{PIN_0, PIN_1, UART0};
 use embassy_rp::uart::{self, BufferedUartRx, BufferedUartTx, DataBits, Parity, StopBits};
+use embassy_rp::Peri;
 use embassy_sync::pubsub::PubSubBehavior;
 use embassy_time::{Duration, Timer};
 use embedded_io_async::{Read, Write};
@@ -77,7 +78,9 @@ async fn send_messages(mut events: KbEventsRx, mut tx: BufferedUartTx, this_half
             event = USB_EVENTS_OUT.receive().fuse() => Message::UsbEvent(event),
         };
 
-        let (buf_header, buf_body) = buf.split_array_mut();
+        let (buf_header, buf_body) = buf
+            .split_first_chunk_mut()
+            .expect("buf length is >= HEADER_LEN");
         let serialized = match postcard::to_slice(&message, buf_body) {
             Ok(s) => s,
             Err(e) => {

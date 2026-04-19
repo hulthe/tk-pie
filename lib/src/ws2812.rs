@@ -1,6 +1,8 @@
 use embassy_rp::dma::{self, AnyChannel};
 use embassy_rp::interrupt::typelevel::Binding;
-use embassy_rp::pio::{self, Assembler, FifoJoin, Pio, PioPin, ShiftConfig, ShiftDirection};
+use embassy_rp::pio::{
+    self, program::Assembler, FifoJoin, Pio, PioPin, ShiftConfig, ShiftDirection,
+};
 use embassy_rp::Peri;
 use fixed::FixedU32;
 
